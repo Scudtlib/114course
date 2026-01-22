@@ -19,13 +19,20 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
-        /* Custom Styles to ensure better mobile experience */
+        /* Custom Styles */
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: #f9fafb;
         }
         .cursor-wait {
             cursor: wait;
+        }
+        /* Hide scrollbar for iframe */
+        #hidden_iframe {
+            display: none;
+            width: 0;
+            height: 0;
+            border: 0;
         }
     </style>
 </head>
@@ -35,7 +42,7 @@
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
         
-        // Lucide Icons components wrapper since we're using UMD build
+        // Icon Wrappers
         const BookOpen = () => <i data-lucide="book-open" className="w-8 h-8 text-purple-700"></i>;
         const CheckCircle = () => <i data-lucide="check-circle" className="w-10 h-10 text-green-600"></i>;
         const Send = () => <i data-lucide="send" className="w-5 h-5 ml-2"></i>;
@@ -45,13 +52,12 @@
         const App = () => {
             const [submitted, setSubmitted] = useState(false);
             const [loading, setLoading] = useState(false);
-            const iframeRef = useRef(null);
             const formRef = useRef(null);
 
-            // Google Form Action URL
-            const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/u/0/d/e/1FAIpQLSf0WURbso9UHb7UIDgQUoyBuD5KmaHj5pmbUVC31r2GopjQPw/formResponse";
+            // 修正 1: 移除 /u/0/ 以避免特定帳號綁定問題
+            const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSf0WURbso9UHb7UIDgQUoyBuD5KmaHj5pmbUVC31r2GopjQPw/formResponse";
 
-            // Field IDs configuration
+            // 欄位 ID 設定 (保持正確)
             const FIELD_IDS = {
                 studentId: "entry.616274275",  
                 q1: "entry.1220592937",
@@ -62,6 +68,7 @@
                 q6: "entry.1951508483"
             };
             
+            // 驗證代碼
             const FBZX_TOKEN = "-1574618325326581094"; 
 
             const questions = [
@@ -103,20 +110,21 @@
                 }
             ];
 
-            // Re-render icons after state changes
+            // 確保 Icon 載入
             useEffect(() => {
                 if (window.lucide) {
                     window.lucide.createIcons();
                 }
-            });
+            }, [submitted]); // 當 submitted 狀態改變時也要重新渲染 icon
 
             const handleSubmit = () => {
                 setLoading(true);
+                // 延長緩衝時間至 2.5 秒，確保表單有足夠時間送出
                 setTimeout(() => {
                     setSubmitted(true);
                     setLoading(false);
                     window.scrollTo(0, 0);
-                }, 2000); 
+                }, 2500); 
             };
 
             if (submitted) {
@@ -130,8 +138,8 @@
                             <p className="text-gray-600 mb-2 leading-relaxed">
                                 您的回饋對我們非常重要。<br/>這將幫助圖書館優化未來的課程內容。
                             </p>
-                            <p className="text-sm text-gray-400 mt-6">
-                                您現在可以關閉此視窗
+                            <p className="text-sm text-gray-400 mt-6 border-t pt-4">
+                                資料已送出，您可以直接關閉此視窗。
                             </p>
                         </div>
                     </div>
@@ -140,14 +148,7 @@
 
             return (
                 <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 font-sans">
-                    {/* Hidden iframe for form submission */}
-                    <iframe
-                        name="hidden_iframe"
-                        id="hidden_iframe"
-                        style={{ display: "none" }}
-                        ref={iframeRef}
-                        title="hidden-frame"
-                    ></iframe>
+                    <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
 
                     <div className="max-w-3xl mx-auto">
                         {/* Header Card */}
@@ -212,10 +213,12 @@
                             onSubmit={handleSubmit}
                             className="space-y-6"
                         >
-                            {/* Required hidden fields for Google Form validation */}
+                            {/* 修正 2: 補齊所有隱藏欄位，確保資料能通過 Google 驗證 */}
                             <input type="hidden" name="fvv" value="1" />
                             <input type="hidden" name="fbzx" value={FBZX_TOKEN} />
                             <input type="hidden" name="pageHistory" value="0" />
+                            <input type="hidden" name="partialResponse" value='[null,null,"-1574618325326581094"]' />
+                            <input type="hidden" name="submissionTimestamp" value="-1" />
 
                             {/* Student ID Field */}
                             <div className="bg-white rounded-xl shadow-md p-6 sm:p-8 transition hover:shadow-lg">
