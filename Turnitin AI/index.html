@@ -91,7 +91,7 @@
                 <h1 class="text-2xl font-bold text-green-600 mb-4">課後自我評估 & 滿意度調查</h1>
                 <div class="bg-green-50 border-l-4 border-green-400 text-green-700 p-4 rounded-md mb-6 text-sm sm:text-base space-y-3">
                      <p>各位師長、同學大家好，</p>
-                     <p>感謝您的參與。這份評估主要目的是想要瞭解大家在這門課程後對「Turnitin 英文AI寫作偵測功能」的了解程度。您的填答結果僅做為我們改善課程內容的依據，我們不會將個人資料與填答內容外洩，請放心填寫。</p>
+                     <p>感謝您的參與。這份評估主要目的是想要瞭解大家在這門課程後對「Turnitin 英文AI寫作偵測功能」的了解程度。您的填答結果僅做為我們改善課程內容的據，我們不會將個人資料與填答內容外洩，請放心填寫。</p>
                      <div class="text-right pt-2"><p>圖書館 敬上</p></div>
                 </div>
 
@@ -139,7 +139,7 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2">3. 學院/單位 <span class="text-red-500">*</span></label>
                             <select id="college" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" required>
                                 <option value="" disabled selected>請選擇...</option>
-                                <option value="人社院">人社院</option>
+                                <option value="人文社會學院">人文社會學院</option>
                                 <option value="外國語文學院">外國語文學院</option>
                                 <option value="理學院">理學院</option>
                                 <option value="法學院">法學院</option>
@@ -205,7 +205,8 @@
                 <div class="mb-4 text-green-500">
                     <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-4">提交成功！</h1>
+                <!-- 更新標題，使其與範例檔案語氣一致 -->
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">感謝您的填答！</h1>
                 <p id="success-message" class="text-gray-600 mb-8 font-medium text-lg"></p>
                 <button onclick="showPage('home-page')" class="bg-blue-500 text-white py-3 px-8 rounded-lg transition-transform transform hover:scale-105 duration-300">返回首頁</button>
             </div>
@@ -310,7 +311,8 @@
                 if(!val) return alert(`請完成第 ${i+1} 項評分`);
                 params.append(GOOGLE_FORM_CONFIG.preTest.entries[`q${i+1}`], val);
             }
-            sendToGoogle(GOOGLE_FORM_CONFIG.preTest.url, params, "已收到您的課前填答，課程即將開始！");
+            // 更新成功文字，與 Turnitin 範例檔一致
+            sendToGoogle(GOOGLE_FORM_CONFIG.preTest.url, params, "感謝您的填答，課程即將開始！");
         }
 
         async function submitPostTest() {
