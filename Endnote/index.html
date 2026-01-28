@@ -3,246 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EndNote 課程前後測</title>
+    <title>EndNote 知識探險</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-        .fade-in { animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .likert-scale { display: flex; justify-content: space-between; align-items: center; }
-        .likert-scale label { display: flex; flex-direction: column; align-items: center; cursor: pointer; text-align: center; }
+        :root {
+            --primary: #3b82f6;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+        }
+        body { font-family: 'Noto Sans TC', sans-serif; overflow-x: hidden; }
+        .game-font { font-family: 'Bungee', 'Noto Sans TC', sans-serif; }
+        
+        .bg-mesh {
+            background-color: #f8fafc;
+            background-image: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, rgba(16, 185, 129, 0.1) 0, transparent 50%);
+        }
+
+        /* 內容換題動畫 */
+        .content-fade { animation: contentSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes contentSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-enter { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .xp-float {
+            position: absolute;
+            animation: floatUp 0.8s ease-out forwards;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1.5); }
+        }
+
+        .likert-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid #f3f4f6;
+            background: white;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .likert-btn:active { transform: scale(0.95); }
+        .likert-btn.selected { 
+            background-color: var(--primary); 
+            color: white; 
+            border-color: var(--primary); 
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4); 
+        }
+
+        .progress-bar { transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1); }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-mesh min-h-screen text-gray-800">
 
-    <div id="app" class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+    <div id="progress-container" class="fixed top-0 left-0 w-full h-2 bg-gray-200 z-50 hidden">
+        <div id="main-progress" class="h-full bg-blue-500 progress-bar" style="width: 0%"></div>
+    </div>
 
-        <!-- 首頁 -->
-        <div id="home-page" class="text-center space-y-8 fade-in">
-            <div class="bg-white px-8 pt-4 pb-8 rounded-2xl shadow-lg border border-gray-200">
-                <div class="w-full max-w-32 mx-auto mb-2">
-                    <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 140 Q 50 110 100 120 T 190 130" fill="none" stroke="#a7f3d0" stroke-width="2"/>
-                        <circle cx="40" cy="90" r="20" fill="#fde68a"/>
-                        <g transform="translate(130 60)">
-                            <path d="M 0 0 L 40 0 L 40 60 L 0 60 Z" fill="#d1d5db" rx="5"/>
-                            <rect x="10" y="10" width="20" height="5" fill="#3b82f6" rx="2"/>
-                        </g>
+    <div id="app" class="container mx-auto p-4 max-w-2xl min-h-screen flex flex-col justify-center">
+
+        <!-- [首頁] -->
+        <div id="home-page" class="space-y-8 text-center card-enter">
+            <div class="relative inline-block">
+                <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full blur opacity-25"></div>
+                <div class="relative bg-white p-6 rounded-full shadow-xl">
+                    <svg class="w-16 h-16 text-blue-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                     </svg>
                 </div>
-                <h1 class="text-3xl sm:text-4xl font-bold text-blue-600 mb-4">EndNote 利用教育課程</h1>
-                <p class="text-gray-600 mb-8 max-w-2xl mx-auto">為了解您在課程前後的學習成效，請依據您的參與階段，選擇下面的自我評估，做為未來改善課程的依據。</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow border border-gray-200">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">課前自我評估</h2>
-                    <p class="text-gray-600 mb-6">在課程開始前，請先完成此份評估，幫助我們了解您對各項功能的既有認識。</p>
-                    <button onclick="showPage('pre-test-page')" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105">開始評估</button>
+            
+            <div class="space-y-2">
+                <h1 class="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">EndNote 知識探險</h1>
+                <p class="text-blue-600 font-bold tracking-widest uppercase text-xs sm:text-sm">Research Ability Self-Evaluation</p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 pt-8">
+                <button onclick="startJourney('pre')" class="group relative bg-white p-6 rounded-2xl shadow-md border-2 border-transparent hover:border-blue-500 transition-all text-left overflow-hidden active:scale-95">
+                    <h3 class="text-xl font-bold text-gray-800">登入探險：前測</h3>
+                    <p class="text-gray-500 text-sm">評估你的初始書目管理力</p>
+                    <div class="mt-4 inline-flex items-center text-blue-500 font-bold">START <span class="ml-2">→</span></div>
+                </button>
+
+                <button onclick="promptForCode()" class="group relative bg-white p-6 rounded-2xl shadow-md border-2 border-transparent hover:border-green-500 transition-all text-left overflow-hidden active:scale-95">
+                    <h3 class="text-xl font-bold text-gray-800">完成挑戰：後測</h3>
+                    <p class="text-gray-500 text-sm">升級你的技能與回饋</p>
+                    <div class="mt-4 inline-flex items-center text-green-500 font-bold">LEVEL UP <span class="ml-2">→</span></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- [流程頁面] -->
+        <div id="quest-page" class="hidden card-enter">
+            <div id="quest-card" class="bg-white rounded-3xl shadow-2xl p-6 md:p-10 relative overflow-hidden">
+                <div id="step-header" class="mb-8">
+                    <span id="step-badge" class="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-bold uppercase tracking-widest">Question 1</span>
+                    <h2 id="question-text" class="text-xl md:text-2xl font-bold text-gray-800 mt-4 leading-relaxed">載入任務中...</h2>
                 </div>
-                <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow border border-gray-200">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-4">課後自我評估 & 滿意度</h2>
-                    <p class="text-gray-600 mb-6">在課程結束後，請完成此份評估與問卷，以了解您的學習成果與課程滿意度。</p>
-                    <button onclick="promptForCode('post-test')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105">開始評估</button>
+
+                <div id="question-content" class="min-h-[200px]">
+                    <!-- 動態內容將插入於此 -->
+                </div>
+
+                <div class="flex items-center justify-between mt-12 border-t pt-8">
+                    <button id="prev-btn" onclick="prevStep()" class="text-gray-400 font-bold hover:text-gray-600 transition-colors py-2 px-4 rounded-lg">← BACK</button>
+                    <div id="step-indicator" class="text-gray-300 font-bold text-sm tracking-widest">01 / 10</div>
+                    <button id="next-btn" onclick="nextStep()" class="bg-blue-600 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-blue-700 transition-all transform active:scale-95">NEXT</button>
                 </div>
             </div>
         </div>
 
-        <!-- 前測頁面 -->
-        <div id="pre-test-page" class="hidden fade-in">
-            <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-                <h1 class="text-2xl font-bold text-blue-600 mb-4">課前自我評估</h1>
-                <div class="bg-blue-50 border-l-4 border-blue-400 text-blue-700 p-4 rounded-md mb-6 text-sm sm:text-base space-y-3">
-                    <p>各位師長、同學大家好，</p>
-                    <p>歡迎您參與圖書館舉辦之利用教育課程。這份評估主要目的是想要瞭解大家在這門課程前對書目管理軟體的了解程度。您的填答結果僅做為我們改善課程製作及內容深度調整的依據，我們不會將個人資料與填答內容外洩，請放心填寫。</p>
-                    <div class="text-right pt-2"><p>圖書館 敬上</p></div>
+        <!-- [結果頁面] -->
+        <div id="results-page" class="hidden text-center card-enter">
+             <div class="bg-white p-10 rounded-3xl shadow-2xl space-y-6">
+                <div class="w-32 h-32 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-yellow-400">
+                    <span class="text-5xl">🏆</span>
                 </div>
-
-                <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">學號 / 人事代碼 <span class="text-red-500">*</span></label>
-                    <input type="text" id="pre-test-user-id" class="shadow border rounded-lg w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <h2 class="text-3xl font-black text-gray-800">任務完成！</h2>
+                <p id="success-message" class="text-gray-500 leading-relaxed"></p>
+                <div class="pt-6">
+                    <button onclick="location.reload()" class="bg-gray-800 text-white px-10 py-4 rounded-full font-bold hover:bg-black transition-all">返回大廳</button>
                 </div>
-
-                <div class="bg-gray-50 p-4 rounded-lg mb-8 text-sm text-gray-600">
-                    <h3 class="font-bold text-gray-700 mb-2">評分標準說明：</h3>
-                    <p><span class="font-semibold">5分 (精通):</span> 能獨立流暢完成，並清楚解釋。</p>
-                    <p><span class="font-semibold">4分 (熟悉):</span> 大致可完成，但需參考說明。</p>
-                    <p><span class="font-semibold">3分 (尚可):</span> 需引導，部分功能不熟悉。</p>
-                    <p><span class="font-semibold">2分 (略懂):</span> 知道功能，但不清楚如何使用。</p>
-                    <p><span class="font-semibold">1分 (未學):</span> 從未聽過此功能。</p>
-                </div>
-
-                <form id="pre-test-form" class="space-y-8"></form>
-                <div class="mt-8 flex justify-between">
-                    <button onclick="showPage('home-page')" class="bg-gray-200 py-2 px-4 rounded-lg">返回首頁</button>
-                    <button onclick="submitPreTest()" class="bg-blue-500 text-white py-3 px-8 rounded-lg font-bold">提交評估</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 後測頁面 -->
-        <div id="post-test-page" class="hidden fade-in">
-            <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-                <h1 class="text-2xl font-bold text-green-600 mb-4">課後自我評估 & 滿意度調查</h1>
-                <div class="bg-green-50 border-l-4 border-green-400 text-green-700 p-4 rounded-md mb-6 text-sm sm:text-base space-y-3">
-                     <p>各位師長、同學大家好，</p>
-                     <p>感謝您的參與。這份評估主要目的是想要瞭解大家在這門課程後對書目管理軟體的了解程度。您的填答結果僅做為我們改善課程製作及內容深度調整的依據，我們不會將個人資料與填答內容外洩，請放心填寫。</p>
-                     <div class="text-right pt-2"><p>圖書館 敬上</p></div>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">學號 / 人事代碼 <span class=\"text-red-500\">*</span></label>
-                    <input type="text" id="post-test-user-id" class="shadow border rounded-lg w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500" required>
-                </div>
-
-                <h2 class="text-xl font-bold text-gray-800 mt-8 mb-4 border-b pb-2">第一部分：課後自我評估 (必填)</h2>
-                <div class="bg-gray-50 p-4 rounded-lg mb-8 text-sm text-gray-600">
-                    <h3 class="font-bold text-gray-700 mb-2">評分標準說明：</h3>
-                    <p><span class="font-semibold">5分 (精通):</span> 能獨立流暢完成，並清楚解釋。</p>
-                    <p><span class="font-semibold">4分 (熟悉):</span> 大致可完成，但需參考說明。</p>
-                    <p><span class="font-semibold">3分 (尚可):</span> 需引導，部分功能不熟悉。</p>
-                    <p><span class="font-semibold">2分 (略懂):</span> 知道功能，但不清楚如何使用。</p>
-                    <p><span class="font-semibold">1分 (未學):</span> 從未聽過此功能。</p>
-                </div>
-
-                <form id="post-test-form" class="space-y-8"></form>
-
-                <h2 class="text-xl font-bold text-gray-800 mt-12 mb-4 border-b pb-2">第二部分：滿意度調查</h2>
-                <form id="satisfaction-form" class="space-y-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">1. 生理性別 <span class="text-red-500">*</span></label>
-                            <select id="gender" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" required>
-                                <option value="" disabled selected>請選擇...</option>
-                                <option value="男">男</option>
-                                <option value="女">女</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">2. 身分別 <span class="text-red-500">*</span></label>
-                            <select id="status" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" required>
-                                <option value="" disabled selected>請選擇...</option>
-                                <option value="大學部">大學部</option>
-                                <option value="碩士生">碩士生</option>
-                                <option value="博士生">博士生</option>
-                                <option value="教師">教師</option>
-                                <option value="職員">職員</option>
-                                <option value="其它">其它</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">3. 學院/單位 <span class="text-red-500">*</span></label>
-                            <select id="college" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" required>
-                                <option value="" disabled selected>請選擇...</option>
-                                <option value="人文社會學院">人文社會學院</option>
-                                <option value="外國語文學院">外國語文學院</option>
-                                <option value="理學院">理學院</option>
-                                <option value="法學院">法學院</option>
-                                <option value="商學院">商學院</option>
-                                <option value="巨量資料管理學院">巨量資料管理學院</option>
-                                <option value="行政單位">行政單位</option>
-                                <option value="其它">其它</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2">4. 學系/單位 <span class="text-red-500">*</span></label>
-                            <input type="text" id="department" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" placeholder="例如：法律系" required>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <label class="block text-gray-700 font-bold mb-2 text-base">5. 請問您參加本次課程的動機為何？ (可複選) <span class="text-red-500">*</span></label>
-                        <div id="motivation-checkboxes" class="space-y-2 mt-2">
-                            <label class="flex items-center"><input type="checkbox" name="motivation" value="提升論文寫作與研究能力" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">提升論文寫作與研究能力</span></label>
-                            <label class="flex items-center"><input type="checkbox" name="motivation" value="增進個人專業知能" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">增進個人專業知能</span></label>
-                            <label class="flex items-center"><input type="checkbox" name="motivation" value="對目前/未來工作有助益" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">對目前/未來工作有助益</span></label>
-                            <label class="flex items-center"><input type="checkbox" name="motivation" value="老師推薦/課程要求" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">老師推薦/課程要求</span></label>
-                            <label class="flex items-center"><input type="checkbox" name="motivation" value="對主題感興趣" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">對主題感興趣</span></label>
-                            <label class="flex items-center"><input type="checkbox" name="motivation" value="其他" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">其他</span></label>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 border rounded-lg shadow-sm">
-                        <label class="block text-gray-700 font-bold mb-4 text-base">6. 今日的課程講授，對於提昇我自己的研究／搜尋技能很有幫助 <span class="text-red-500">*</span></label>
-                        <div class="likert-scale">
-                            <span class="text-xs text-gray-700 font-bold">非常同意</span>
-                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q1-satisfaction" value="5" required class="h-5 w-5 mb-1"> 5分</label>
-                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q1-satisfaction" value="4" class="h-5 w-5 mb-1"> 4分</label>
-                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q1-satisfaction" value="3" class="h-5 w-5 mb-1"> 3分</label>
-                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q1-satisfaction" value="2" class="h-5 w-5 mb-1"> 2分</label>
-                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q1-satisfaction" value="1" class="h-5 w-5 mb-1"> 1分</label>
-                            <span class="text-xs text-gray-400 font-bold">非常不同意</span>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 border rounded-lg shadow-sm">
-                        <label class="block text-gray-700 font-bold mb-4 text-base">7. 主講人能夠正確並清楚地表達講授的內容 <span class="text-red-500">*</span></label>
-                        <div class="likert-scale">
-                            <span class="text-xs text-gray-700 font-bold">非常同意</span>
-                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q2-satisfaction" value="5" required class="h-5 w-5 mb-1"> 5分</label>
-                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q2-satisfaction" value="4" class="h-5 w-5 mb-1"> 4分</label>
-                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q2-satisfaction" value="3" class="h-5 w-5 mb-1"> 3分</label>
-                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q2-satisfaction" value="2" class="h-5 w-5 mb-1"> 2分</label>
-                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q2-satisfaction" value="1" class="h-5 w-5 mb-1"> 1分</label>
-                            <span class="text-xs text-gray-400 font-bold">非常不同意</span>
-                        </div>
-                    </div>
-                    <div><label class="block text-gray-700 font-bold mb-2 text-base">8. 對於本次課程的心得建議</label><textarea id="feedback" rows="3" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700"></textarea></div>
-                    <div><label class="block text-gray-700 font-bold mb-2 text-base">9. 下次希望參加的課程內容為何?</label><textarea id="future-topics" rows="3" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700"></textarea></div>
-                </form>
-                <div class="mt-8 flex justify-between">
-                    <button onclick="showPage('home-page')" class="bg-gray-200 py-2 px-4 rounded-lg">返回首頁</button>
-                    <button onclick="submitPostTest()" class="bg-green-500 text-white py-3 px-8 rounded-lg font-bold">提交資料</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 結果頁面 -->
-        <div id="results-page" class="hidden fade-in text-center">
-             <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-                <div class="mb-4 text-green-500">
-                    <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 13l4 4L19 7\"></path></svg>
-                </div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-4">提交成功！</h1>
-                <p id="success-message" class="text-gray-600 mb-8 font-medium text-lg"></p>
-                <button onclick="showPage('home-page')" class="bg-blue-500 text-white py-3 px-8 rounded-lg transition-transform transform hover:scale-105 duration-300">返回首頁</button>
             </div>
         </div>
 
         <!-- 驗證碼 Modal -->
-        <div id="prompt-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white p-6 rounded-lg shadow-xl w-80">
-                <h3 id="prompt-title" class="font-bold mb-4 text-center">請輸入後測代碼</h3>
-                <input type="password" id="prompt-input" class="border w-full p-2 rounded mb-4 focus:ring-2 focus:ring-blue-500 outline-none">
-                <div class="flex justify-end space-x-2">
-                    <button onclick="document.getElementById('prompt-modal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 rounded">取消</button>
-                    <button id="prompt-ok-button" class="px-4 py-2 bg-blue-500 text-white rounded">確認</button>
+        <div id="prompt-modal" class="hidden fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+            <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-sm card-enter">
+                <h3 class="text-2xl font-bold mb-2">解鎖挑戰</h3>
+                <p class="text-gray-500 text-sm mb-6">請輸入課程中公佈的「後測代碼」</p>
+                <input type="text" id="prompt-input" class="w-full text-center text-3xl font-black tracking-widest border-2 border-gray-100 rounded-2xl py-4 mb-6 focus:border-green-500 outline-none uppercase transition-all" placeholder="••••">
+                <div class="flex gap-3">
+                    <button onclick="document.getElementById('prompt-modal').classList.add('hidden')" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-gray-500">取消</button>
+                    <button onclick="verifyCode()" class="flex-1 py-4 bg-green-500 text-white rounded-2xl font-bold shadow-lg shadow-green-200">解鎖</button>
                 </div>
             </div>
         </div>
+
     </div>
 
     <script>
-        /**
-         * Google Form 設定區 - 根據預填連結更新 Entry IDs
-         */
-        const GOOGLE_FORM_CONFIG = {
+        // 對應 index (2).html 的 Google Form 設定
+        const CONFIG = {
             preTest: {
                 url: "https://docs.google.com/forms/d/e/1FAIpQLSeUDzcqVRWQBmmyaHw0nDdKwPFfizaDmDexiBZuXc93zpEHaw/formResponse",
-                entries: {
+                entries: { 
                     userId: "entry.378923667", 
                     q1: "entry.241033281", 
                     q2: "entry.183905554", 
                     q3: "entry.469725819", 
                     q4: "entry.4395774", 
                     q5: "entry.965193955", 
-                    q6: "entry.1262742436"
+                    q6: "entry.1262742436" 
                 }
             },
             postTest: {
                 url: "https://docs.google.com/forms/d/e/1FAIpQLSfsTQ7S0QX1UtihX-Wg7HMArXkIcIhFS2jMsDvsQwSyEO2PJw/formResponse",
-                entries: {
-                    userId: "entry.378923667",
+                entries: { 
+                    userId: "entry.378923667", 
                     q1: "entry.1311432896", 
                     q2: "entry.1028846456", 
                     q3: "entry.1233448344",
@@ -262,129 +189,282 @@
             }
         };
 
+        // 更新後的評估題目，第 2 題增加了具體舉例
         const assessmentItems = [
             "當我開始撰寫報告時，我能清楚說明 EndNote 在學術寫作中，如何幫助我管理與引用參考文獻。",
-            "當我從線上學術資源找到文獻時，我能順利將書目資料匯出並匯入 EndNote Library 中。",
+            "當我從線上學術資源（如：華藝線上圖書館、Google Scholar、圖書館館藏目錄等）找到文獻時，我能順利將書目資料匯出並匯入 EndNote Library 中。",
             "當我下載了一篇重要的 PDF 全文，我能利用 PDF Import 功能，快速建立對應的書目資料。",
             "為了有效管理不同研究主題的參考文獻，我能活用 Group 功能，為我的 EndNote Library 建立專屬的分類資料夾。",
             "在 Word 中撰寫內文時，我能在需要的位置，即時插入 EndNote 中的引文，並自動生成參考書目。",
             "當我的論文完稿要投稿或繳交前，我知道如何移除 Word 文件中 EndNote 的參數，轉換為純文字格式。"
         ];
 
-        let currentPage = 'home-page';
+        const skillDefinitions = [
+            { score: 5, label: "精通", desc: "能獨立流暢完成，並清楚解釋。" },
+            { score: 4, label: "熟悉", desc: "大致可完成，但需參考說明。" },
+            { score: 3, label: "尚可", desc: "需引導，部分功能不熟悉。" },
+            { score: 2, label: "略懂", desc: "知道功能，但不清楚如何使用。" },
+            { score: 1, label: "未學", desc: "從未聽過此功能。" }
+        ];
 
-        function showPage(pageId) {
-            document.getElementById(currentPage).classList.add('hidden');
-            document.getElementById(pageId).classList.remove('hidden');
-            currentPage = pageId;
-            if (pageId === 'pre-test-page' || pageId === 'post-test-page') {
-                const target = pageId === 'pre-test-page' ? 'pre-test-form' : 'post-test-form';
-                renderAssessments(target);
+        let questType = 'pre';
+        let currentStep = 0;
+        let steps = [];
+        let answers = {};
+
+        function startJourney(type) {
+            questType = type;
+            currentStep = 0;
+            answers = {};
+            setupSteps();
+            renderStep();
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('quest-page').classList.remove('hidden');
+            document.getElementById('progress-container').classList.remove('hidden');
+        }
+
+        function setupSteps() {
+            // 身分驗證 (必填)
+            steps = [{ type: 'input', label: '身分驗證', question: '請輸入您的學號或人事代碼', id: 'userId', placeholder: '學號 / 人事代碼' }];
+            
+            // 技能評估 (必填)
+            assessmentItems.forEach((item, i) => steps.push({ type: 'likert', label: `探險技能 ${i+1}`, question: item, id: `q${i+1}` }));
+            
+            if (questType === 'post') {
+                // 基本資料 (必填)
+                steps.push({ type: 'select', label: '基本資料', question: '生理性別', id: 'gender', options: ['男', '女'] });
+                steps.push({ type: 'select', label: '基本資料', question: '身分別', id: 'status', options: ['大學部', '碩士生', '博士生', '教師', '職員', '其它'] });
+                steps.push({ type: 'select', label: '基本資料', question: '學院/單位', id: 'college', options: ['人文社會學院', '外國語文學院', '理學院', '法學院', '商學院', '巨量資料管理學院', '行政單位', '其它'] });
+                steps.push({ type: 'input', label: '基本資料', question: '學系/單位', id: 'department', placeholder: '例如：法律系' });
+                
+                // 參與動機 (必填，至少勾一項)
+                steps.push({ type: 'checkbox', label: '參與動機', question: '請問您參加本次課程的動機為何？(多選)', id: 'motivation', options: ['提升論文寫作與研究能力', '增進個人專業知能', '對目前/未來工作有助益', '老師推薦/課程要求', '對主題感興趣', '其他'] });
+                
+                // 滿意度 (必填)
+                steps.push({ type: 'likert', label: '滿意度', question: '今日的課程講授，對於提昇我自己的研究／搜尋技能很有幫助', id: 'satisfaction1' });
+                steps.push({ type: 'likert', label: '滿意度', question: '主講人能夠正確並清楚地表達講授的內容', id: 'satisfaction2' });
+                
+                // 選填欄位 (鼓勵填寫語氣)
+                steps.push({ type: 'textarea', label: '心得回饋', question: '對於本次課程的心得建議', id: 'feedback', optional: true });
+                steps.push({ type: 'textarea', label: '未來期望', question: '下次希望參加的課程內容', id: 'futureTopics', optional: true });
             }
-            window.scrollTo(0, 0);
         }
 
-        function renderAssessments(formId) {
-            const form = document.getElementById(formId);
-            if (!form || form.children.length > 0) return;
-            assessmentItems.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = 'bg-white p-6 border rounded-lg shadow-sm';
-                div.innerHTML = `<p class="font-bold mb-4 text-gray-700 text-base">${index+1}. ${item}</p>
-                    <div class="likert-scale">
-                        ${[5,4,3,2,1].map(v => `<label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q${index}" value="${v}" required class="h-5 w-5 mb-1"> ${v}分</label>`).join('')}
-                    </div>`;
-                form.appendChild(div);
-            });
+        function renderStep() {
+            const step = steps[currentStep];
+            const content = document.getElementById('question-content');
+            const questionText = document.getElementById('question-text');
+            const stepBadge = document.getElementById('step-badge');
+            const indicator = document.getElementById('step-indicator');
+            const nextBtn = document.getElementById('next-btn');
+
+            content.classList.remove('content-fade');
+            void content.offsetWidth; 
+            content.classList.add('content-fade');
+
+            content.innerHTML = ''; 
+            
+            if (step.optional) {
+                questionText.innerHTML = `${step.question} <span class="text-gray-400 text-sm font-normal ml-2">(選填)</span>`;
+            } else {
+                questionText.innerHTML = `${step.question} <span class="text-red-500 font-bold ml-1">*</span>`;
+            }
+
+            stepBadge.innerText = step.label;
+            indicator.innerText = `${String(currentStep + 1).padStart(2, '0')} / ${steps.length}`;
+            
+            const progress = ((currentStep) / (steps.length - 1)) * 100;
+            document.getElementById('main-progress').style.width = `${progress}%`;
+            document.getElementById('prev-btn').style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+            nextBtn.innerText = currentStep === steps.length - 1 ? 'FINISH' : 'NEXT';
+
+            if (step.type === 'input') {
+                const el = document.createElement('input');
+                el.type = 'text';
+                el.id = `input-${step.id}`;
+                el.value = answers[step.id] || '';
+                el.className = 'w-full border-b-4 border-gray-100 py-4 text-2xl font-bold outline-none focus:border-blue-500 transition-all';
+                el.placeholder = step.placeholder || '在此輸入...';
+                content.appendChild(el);
+            } else if (step.type === 'textarea') {
+                const el = document.createElement('textarea');
+                el.id = `input-${step.id}`;
+                el.className = 'w-full border-2 border-gray-100 rounded-2xl p-4 text-lg outline-none focus:border-blue-500 transition-all';
+                el.rows = 4;
+                el.value = answers[step.id] || '';
+                el.placeholder = step.optional ? '您的建議是我們進步的最大動力，歡迎分享您的想法...' : '在此輸入您的想法...';
+                content.appendChild(el);
+            } else if (step.type === 'likert') {
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-5 gap-2 mt-4';
+                [5,4,3,2,1].forEach(v => {
+                    const btn = document.createElement('button');
+                    btn.className = `likert-btn py-6 rounded-2xl font-black text-xl ${answers[step.id] == v ? 'selected' : ''}`;
+                    btn.innerText = v;
+                    btn.onclick = (e) => {
+                        answers[step.id] = v;
+                        Array.from(grid.children).forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        createXP(e.clientX, e.clientY);
+                        setTimeout(nextStep, 350);
+                    };
+                    grid.appendChild(btn);
+                });
+                content.appendChild(grid);
+                
+                const labels = document.createElement('div');
+                labels.className = 'flex justify-between mt-4 text-xs text-gray-400 font-bold px-2';
+                const leftLabel = step.label === '滿意度' ? '非常同意 🤩' : '精通 🚀';
+                const rightLabel = step.label === '滿意度' ? '非常不同意 😤' : '未學 🕳️';
+                labels.innerHTML = `<span>${leftLabel}</span><span>${rightLabel}</span>`;
+                content.appendChild(labels);
+
+                if (step.label !== '滿意度') {
+                    const criteriaBox = document.createElement('div');
+                    criteriaBox.className = 'mt-8 p-4 bg-gray-50 rounded-2xl border border-gray-100';
+                    criteriaBox.innerHTML = `
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            評分標準說明
+                        </p>
+                        <div class="space-y-2">
+                            ${skillDefinitions.map(d => `
+                                <div class="flex items-start text-xs sm:text-sm">
+                                    <span class="font-bold text-blue-500 w-8 flex-shrink-0">${d.score}分</span>
+                                    <span class="text-gray-400 font-bold w-16 flex-shrink-0">(${d.label})</span>
+                                    <span class="text-gray-500">${d.desc}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    content.appendChild(criteriaBox);
+                }
+
+            } else if (step.type === 'select') {
+                const el = document.createElement('select');
+                el.id = `input-${step.id}`;
+                el.className = 'w-full border-2 border-gray-100 rounded-2xl p-4 text-xl font-bold outline-none focus:border-blue-500 transition-all';
+                el.innerHTML = `<option value="">請選擇...</option>` + step.options.map(o => `<option value="${o}" ${answers[step.id] === o ? 'selected' : ''}>${o}</option>`).join('');
+                content.appendChild(el);
+            } else if (step.type === 'checkbox') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'space-y-3';
+                step.options.forEach(o => {
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors';
+                    const isChecked = (answers[step.id] || []).includes(o);
+                    label.innerHTML = `<input type="checkbox" name="${step.id}" value="${o}" ${isChecked ? 'checked' : ''} class="w-6 h-6 rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="ml-4 font-medium text-gray-700">${o}</span>`;
+                    wrapper.appendChild(label);
+                });
+                content.appendChild(wrapper);
+            }
         }
 
-        async function submitPreTest() {
-            const userId = document.getElementById('pre-test-user-id').value.trim();
-            if(!userId) return alert('請輸入您的學號或人事代碼');
+        function createXP(x, y) {
+            const xp = document.createElement('div');
+            xp.className = 'xp-float font-black text-blue-500 text-xl';
+            xp.innerText = '+XP';
+            xp.style.left = (x - 20) + 'px';
+            xp.style.top = (y - 20) + 'px';
+            document.body.appendChild(xp);
+            setTimeout(() => xp.remove(), 800);
+        }
+
+        function nextStep() {
+            const step = steps[currentStep];
+            
+            if (step.type === 'input' || step.type === 'textarea' || step.type === 'select') {
+                const el = document.getElementById(`input-${step.id}`);
+                const val = el ? el.value.trim() : '';
+                if (!val && !step.optional) {
+                    return alert('此欄位為必填項目，請輸入內容以繼續。');
+                }
+                answers[step.id] = val;
+            } 
+            else if (step.type === 'likert') {
+                if (!answers[step.id] && !step.optional) {
+                    return alert('請選擇一個評分以繼續探險。');
+                }
+            } 
+            else if (step.type === 'checkbox') {
+                const checked = Array.from(document.querySelectorAll(`input[name="${step.id}"]:checked`)).map(c => c.value);
+                if (checked.length === 0 && !step.optional) {
+                    return alert('請至少勾選一項參加動機！');
+                }
+                answers[step.id] = checked;
+            }
+
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                renderStep();
+            } else {
+                submitFinal();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                renderStep();
+            }
+        }
+
+        function submitFinal() {
+            const config = questType === 'pre' ? CONFIG.preTest : CONFIG.postTest;
             const params = new URLSearchParams();
-            params.append(GOOGLE_FORM_CONFIG.preTest.entries.userId, userId);
-            for(let i=0; i<assessmentItems.length; i++) {
-                const val = document.querySelector(`#pre-test-form input[name="q${i}"]:checked`)?.value;
-                if(!val) return alert(`請完成第 ${i+1} 項評分`);
-                params.append(GOOGLE_FORM_CONFIG.preTest.entries[`q${i+1}`], val);
+            
+            params.append(config.entries.userId, answers.userId);
+            
+            for(let i=1; i<=6; i++) {
+                params.append(config.entries[`q${i}`], answers[`q${i}`]);
             }
-            sendToGoogle(GOOGLE_FORM_CONFIG.preTest.url, params, "已收到您的課前填答，請專心上課唷!");
-        }
-
-        async function submitPostTest() {
-            const userId = document.getElementById('post-test-user-id').value.trim();
-            if(!userId) return alert('請輸入學號或人事代碼');
-
-            const params = new URLSearchParams();
-            params.append(GOOGLE_FORM_CONFIG.postTest.entries.userId, userId);
             
-            for(let i=0; i<assessmentItems.length; i++) {
-                const val = document.querySelector(`#post-test-form input[name="q${i}"]:checked`)?.value;
-                if(!val) return alert(`請完成第一部分第 ${i+1} 項評鑑`);
-                params.append(GOOGLE_FORM_CONFIG.postTest.entries[`q${i+1}`], val);
+            if (questType === 'post') {
+                params.append(config.entries.gender, answers.gender);
+                params.append(config.entries.status, answers.status);
+                params.append(config.entries.college, answers.college);
+                params.append(config.entries.department, answers.department);
+                
+                if (answers.motivation) {
+                    answers.motivation.forEach(m => params.append(config.entries.motivation, m));
+                }
+                
+                params.append(config.entries.satisfaction1, answers.satisfaction1);
+                params.append(config.entries.satisfaction2, answers.satisfaction2);
+                params.append(config.entries.feedback, answers.feedback || "");
+                params.append(config.entries.futureTopics, answers.futureTopics || "");
             }
 
-            const gender = document.getElementById('gender').value;
-            const status = document.getElementById('status').value;
-            const college = document.getElementById('college').value;
-            const department = document.getElementById('department').value.trim();
-            
-            if(!gender || !status || !college || !department) return alert('請完整填寫個人基本資料');
-
-            params.append(GOOGLE_FORM_CONFIG.postTest.entries.gender, gender);
-            params.append(GOOGLE_FORM_CONFIG.postTest.entries.status, status);
-            params.append(GOOGLE_FORM_CONFIG.postTest.entries.college, college);
-            params.append(GOOGLE_FORM_CONFIG.postTest.entries.department, department);
-            
-            const motivationCheckboxes = document.querySelectorAll('input[name="motivation"]:checked');
-            if(motivationCheckboxes.length === 0) return alert('請至少勾選一項參加動機');
-            motivationCheckboxes.forEach(cb => {
-                params.append(GOOGLE_FORM_CONFIG.postTest.entries.motivation, cb.value);
-            });
-
-            const sat1 = document.querySelector('input[name="q1-satisfaction"]:checked')?.value;
-            const sat2 = document.querySelector('input[name="q2-satisfaction"]:checked')?.value;
-            if(!sat1 || !sat2) return alert('請對滿意度調查進行評分');
-
-            params.append(GOOGLE_FORM_CONFIG.postTest.entries.satisfaction1, sat1);
-            params.append(GOOGLE_FORM_CONFIG.postTest.entries.satisfaction2, sat2);
-            params.append(GOOGLE_FORM_CONFIG.postTest.entries.feedback, document.getElementById('feedback').value);
-            params.append(GOOGLE_FORM_CONFIG.postTest.entries.futureTopics, document.getElementById('future-topics').value);
-
-            sendToGoogle(GOOGLE_FORM_CONFIG.postTest.url, params, "感謝您今日的參與及填寫回饋問卷。");
-        }
-
-        function sendToGoogle(url, params, successText) {
-            fetch(url, {
-                method: 'POST',
-                mode: 'no-cors',
+            fetch(config.url, { 
+                method: 'POST', 
+                mode: 'no-cors', 
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                body: params.toString()
-            }).then(() => {
-                document.getElementById('success-message').textContent = successText;
-                showPage('results-page');
+                body: params.toString() 
+            })
+            .then(() => {
+                document.getElementById('success-message').innerText = questType === 'pre' ? 
+                    '已收到您的課前填答，請專心上課唷!' : 
+                    '感謝您今日的參與及填寫回饋問卷，祝您研究順利！';
+                document.getElementById('quest-page').classList.add('hidden');
+                document.getElementById('results-page').classList.remove('hidden');
+                document.getElementById('progress-container').classList.add('hidden');
             }).catch(() => alert('提交失敗，請檢查網路連接。'));
         }
 
-        window.promptForCode = (type) => {
-            const modal = document.getElementById('prompt-modal');
-            const okBtn = document.getElementById('prompt-ok-button');
-            const inputField = document.getElementById('prompt-input');
-            inputField.value = '';
-            modal.classList.remove('hidden');
-            inputField.focus();
-            okBtn.onclick = () => {
-                // 更新後的後測進入代碼為 EN2026
-                if(inputField.value === 'EN2026') {
-                    modal.classList.add('hidden');
-                    showPage('post-test-page');
-                } else {
-                    alert('代碼錯誤');
-                }
-            };
-        };
+        function promptForCode() {
+            document.getElementById('prompt-modal').classList.remove('hidden');
+            document.getElementById('prompt-input').focus();
+        }
 
-        window.onload = () => showPage('home-page');
+        function verifyCode() {
+            const code = document.getElementById('prompt-input').value.trim().toUpperCase();
+            if (code === 'EN2026') {
+                document.getElementById('prompt-modal').classList.add('hidden');
+                startJourney('post');
+            } else {
+                alert('代碼錯誤，請詢問講師！');
+            }
+        }
     </script>
 </body>
 </html>
