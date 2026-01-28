@@ -1,1 +1,390 @@
-123
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EndNote 2025 課程前後測</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .likert-scale { display: flex; justify-content: space-between; align-items: center; }
+        .likert-scale label { display: flex; flex-direction: column; align-items: center; cursor: pointer; text-align: center; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="app" class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+
+        <!-- 首頁 -->
+        <div id="home-page" class="text-center space-y-8 fade-in">
+            <div class="bg-white px-8 pt-4 pb-8 rounded-2xl shadow-lg border border-gray-200">
+                <div class="w-full max-w-32 mx-auto mb-2">
+                    <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 140 Q 50 110 100 120 T 190 130" fill="none" stroke="#a7f3d0" stroke-width="2"/>
+                        <circle cx="40" cy="90" r="20" fill="#fde68a"/>
+                        <g transform="translate(130 60)">
+                            <path d="M 0 0 L 40 0 L 40 60 L 0 60 Z" fill="#d1d5db" rx="5"/>
+                            <rect x="10" y="10" width="20" height="5" fill="#3b82f6" rx="2"/>
+                        </g>
+                    </svg>
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-bold text-blue-600 mb-4">EndNote 2025 利用教育課程</h1>
+                <p class="text-gray-600 mb-8 max-w-2xl mx-auto">為了解您在課程前後的學習成效，請依據您的參與階段，選擇下面的自我評估，做為未來改善課程的依據。</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow border border-gray-200">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">課前自我評估</h2>
+                    <p class="text-gray-600 mb-6">在課程開始前，請先完成此份評估，幫助我們了解您對各項功能的既有認識。</p>
+                    <button onclick="showPage('pre-test-page')" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105">開始評估</button>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow border border-gray-200">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">課後自我評估 & 滿意度</h2>
+                    <p class="text-gray-600 mb-6">在課程結束後，請完成此份評估與問卷，以了解您的學習成果與課程滿意度。</p>
+                    <button onclick="promptForCode('post-test')" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105">開始評估</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 前測頁面 -->
+        <div id="pre-test-page" class="hidden fade-in">
+            <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+                <h1 class="text-2xl font-bold text-blue-600 mb-4">課前自我評估</h1>
+                <div class="bg-blue-50 border-l-4 border-blue-400 text-blue-700 p-4 rounded-md mb-6 text-sm sm:text-base space-y-3">
+                    <p>各位師長、同學大家好，</p>
+                    <p>歡迎您參與圖書館舉辦之利用教育課程。這份評估主要目的是想要瞭解大家在這門課程前對書目管理軟體的了解程度。您的填答結果僅做為我們改善課程製作及內容深度調整的依據，我們不會將個人資料與填答內容外洩，請放心填寫。</p>
+                    <div class="text-right pt-2"><p>圖書館 敬上</p></div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">學號 / 人事代碼 <span class="text-red-500">*</span></label>
+                    <input type="text" id="pre-test-user-id" class="shadow border rounded-lg w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-8 text-sm text-gray-600">
+                    <h3 class="font-bold text-gray-700 mb-2">評分標準說明：</h3>
+                    <p><span class="font-semibold">5分 (精通):</span> 能獨立流暢完成，並清楚解釋。</p>
+                    <p><span class="font-semibold">4分 (熟悉):</span> 大致可完成，但需參考說明。</p>
+                    <p><span class="font-semibold">3分 (尚可):</span> 需引導，部分功能不熟悉。</p>
+                    <p><span class="font-semibold">2分 (略懂):</span> 知道功能，但不清楚如何使用。</p>
+                    <p><span class="font-semibold">1分 (未學):</span> 從未聽過此功能。</p>
+                </div>
+
+                <form id="pre-test-form" class="space-y-8"></form>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="showPage('home-page')" class="bg-gray-200 py-2 px-4 rounded-lg">返回首頁</button>
+                    <button onclick="submitPreTest()" class="bg-blue-500 text-white py-3 px-8 rounded-lg font-bold">提交評估</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 後測頁面 -->
+        <div id="post-test-page" class="hidden fade-in">
+            <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+                <h1 class="text-2xl font-bold text-green-600 mb-4">課後自我評估 & 滿意度調查</h1>
+                <div class="bg-green-50 border-l-4 border-green-400 text-green-700 p-4 rounded-md mb-6 text-sm sm:text-base space-y-3">
+                     <p>各位師長、同學大家好，</p>
+                     <p>感謝您的參與。這份評估主要目的是想要瞭解大家在這門課程後對書目管理軟體的了解程度。您的填答結果僅做為我們改善課程製作及內容深度調整的依據，我們不會將個人資料與填答內容外洩，請放心填寫。</p>
+                     <div class="text-right pt-2"><p>圖書館 敬上</p></div>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">學號 / 人事代碼 <span class="text-red-500">*</span></label>
+                    <input type="text" id="post-test-user-id" class="shadow border rounded-lg w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                </div>
+
+                <h2 class="text-xl font-bold text-gray-800 mt-8 mb-4 border-b pb-2">第一部分：課後自我評估 (必填)</h2>
+                <div class="bg-gray-50 p-4 rounded-lg mb-8 text-sm text-gray-600">
+                    <h3 class="font-bold text-gray-700 mb-2">評分標準說明：</h3>
+                    <p><span class="font-semibold">5分 (精通):</span> 能獨立流暢完成，並清楚解釋。</p>
+                    <p><span class="font-semibold">4分 (熟悉):</span> 大致可完成，但需參考說明。</p>
+                    <p><span class="font-semibold">3分 (尚可):</span> 需引導，部分功能不熟悉。</p>
+                    <p><span class="font-semibold">2分 (略懂):</span> 知道功能，但不清楚如何使用。</p>
+                    <p><span class="font-semibold">1分 (未學):</span> 從未聽過此功能。</p>
+                </div>
+
+                <form id="post-test-form" class="space-y-8"></form>
+
+                <h2 class="text-xl font-bold text-gray-800 mt-12 mb-4 border-b pb-2">第二部分：滿意度調查</h2>
+                <form id="satisfaction-form" class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">1. 生理性別 <span class="text-red-500">*</span></label>
+                            <select id="gender" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" required>
+                                <option value="" disabled selected>請選擇...</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">2. 身分別 <span class="text-red-500">*</span></label>
+                            <select id="status" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" required>
+                                <option value="" disabled selected>請選擇...</option>
+                                <option value="大學部">大學部</option>
+                                <option value="碩士生">碩士生</option>
+                                <option value="博士生">博士生</option>
+                                <option value="教師">教師</option>
+                                <option value="職員">職員</option>
+                                <option value="其它">其它</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">3. 學院/單位 <span class="text-red-500">*</span></label>
+                            <select id="college" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" required>
+                                <option value="" disabled selected>請選擇...</option>
+                                <option value="人社院">人社院</option>
+                                <option value="外國語文學院">外國語文學院</option>
+                                <option value="理學院">理學院</option>
+                                <option value="法學院">法學院</option>
+                                <option value="商學院">商學院</option>
+                                <option value="巨量資料管理學院">巨量資料管理學院</option>
+                                <option value="行政單位">行政單位</option>
+                                <option value="其它">其它</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">4. 學系/單位 <span class="text-red-500">*</span></label>
+                            <input type="text" id="department" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" placeholder="例如：法律系" required>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <label class="block text-gray-700 font-bold mb-2 text-base">5. 請問您參加本次課程的動機為何？ (可複選) <span class="text-red-500">*</span></label>
+                        <div id="motivation-checkboxes" class="space-y-2 mt-2">
+                            <label class="flex items-center"><input type="checkbox" name="motivation" value="提升論文寫作與研究能力" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">提升論文寫作與研究能力</span></label>
+                            <label class="flex items-center"><input type="checkbox" name="motivation" value="增進個人專業知能" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">增進個人專業知能</span></label>
+                            <label class="flex items-center"><input type="checkbox" name="motivation" value="對目前/未來工作有助益" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">對目前/未來工作有助益</span></label>
+                            <label class="flex items-center"><input type="checkbox" name="motivation" value="老師推薦/課程要求" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">老師推薦/課程要求</span></label>
+                            <label class="flex items-center"><input type="checkbox" name="motivation" value="對主題感興趣" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">對主題感興趣</span></label>
+                            <label class="flex items-center"><input type="checkbox" name="motivation" value="其他" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">其他</span></label>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 border rounded-lg shadow-sm">
+                        <label class="block text-gray-700 font-bold mb-4 text-base">6. 今日的課程講授，對於提昇我自己的研究／搜尋技能很有幫助 <span class="text-red-500">*</span></label>
+                        <div class="likert-scale">
+                            <span class="text-xs text-gray-700 font-bold">非常同意</span>
+                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q1-satisfaction" value="5" required class="h-5 w-5 mb-1"> 5分</label>
+                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q1-satisfaction" value="4" class="h-5 w-5 mb-1"> 4分</label>
+                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q1-satisfaction" value="3" class="h-5 w-5 mb-1"> 3分</label>
+                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q1-satisfaction" value="2" class="h-5 w-5 mb-1"> 2分</label>
+                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q1-satisfaction" value="1" class="h-5 w-5 mb-1"> 1分</label>
+                            <span class="text-xs text-gray-400 font-bold">非常不同意</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 border rounded-lg shadow-sm">
+                        <label class="block text-gray-700 font-bold mb-4 text-base">7. 主講人能夠正確並清楚地表達講授的內容 <span class="text-red-500">*</span></label>
+                        <div class="likert-scale">
+                            <span class="text-xs text-gray-700 font-bold">非常同意</span>
+                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q2-satisfaction" value="5" required class="h-5 w-5 mb-1"> 5分</label>
+                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q2-satisfaction" value="4" class="h-5 w-5 mb-1"> 4分</label>
+                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q2-satisfaction" value="3" class="h-5 w-5 mb-1"> 3分</label>
+                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q2-satisfaction" value="2" class="h-5 w-5 mb-1"> 2分</label>
+                            <label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q2-satisfaction" value="1" class="h-5 w-5 mb-1"> 1分</label>
+                            <span class="text-xs text-gray-400 font-bold">非常不同意</span>
+                        </div>
+                    </div>
+                    <div><label class="block text-gray-700 font-bold mb-2 text-base">8. 對於本次課程的心得建議</label><textarea id="feedback" rows="3" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700"></textarea></div>
+                    <div><label class="block text-gray-700 font-bold mb-2 text-base">9. 下次希望參加的課程內容為何?</label><textarea id="future-topics" rows="3" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700"></textarea></div>
+                </form>
+                <div class="mt-8 flex justify-between">
+                    <button onclick="showPage('home-page')" class="bg-gray-200 py-2 px-4 rounded-lg">返回首頁</button>
+                    <button onclick="submitPostTest()" class="bg-green-500 text-white py-3 px-8 rounded-lg font-bold">提交資料</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 結果頁面 -->
+        <div id="results-page" class="hidden fade-in text-center">
+             <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+                <div class="mb-4 text-green-500">
+                    <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">提交成功！</h1>
+                <p id="success-message" class="text-gray-600 mb-8 font-medium text-lg"></p>
+                <button onclick="showPage('home-page')" class="bg-blue-500 text-white py-3 px-8 rounded-lg transition-transform transform hover:scale-105 duration-300">返回首頁</button>
+            </div>
+        </div>
+
+        <!-- 驗證碼 Modal -->
+        <div id="prompt-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-xl w-80">
+                <h3 id="prompt-title" class="font-bold mb-4 text-center">請輸入後測代碼</h3>
+                <input type="password" id="prompt-input" class="border w-full p-2 rounded mb-4 focus:ring-2 focus:ring-blue-500 outline-none">
+                <div class="flex justify-end space-x-2">
+                    <button onclick="document.getElementById('prompt-modal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 rounded">取消</button>
+                    <button id="prompt-ok-button" class="px-4 py-2 bg-blue-500 text-white rounded">確認</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Google Form 設定區 - 根據預填連結更新 Entry IDs
+         */
+        const GOOGLE_FORM_CONFIG = {
+            preTest: {
+                url: "https://docs.google.com/forms/d/e/1FAIpQLSeUDzcqVRWQBmmyaHw0nDdKwPFfizaDmDexiBZuXc93zpEHaw/formResponse",
+                entries: {
+                    userId: "entry.378923667", 
+                    q1: "entry.241033281", 
+                    q2: "entry.183905554", 
+                    q3: "entry.469725819", 
+                    q4: "entry.4395774", 
+                    q5: "entry.965193955", 
+                    q6: "entry.1262742436"
+                }
+            },
+            postTest: {
+                url: "https://docs.google.com/forms/d/e/1FAIpQLSfsTQ7S0QX1UtihX-Wg7HMArXkIcIhFS2jMsDvsQwSyEO2PJw/formResponse",
+                entries: {
+                    userId: "entry.378923667",
+                    q1: "entry.1311432896", 
+                    q2: "entry.1028846456", 
+                    q3: "entry.1233448344",
+                    q4: "entry.1856125138", 
+                    q5: "entry.2019687499", 
+                    q6: "entry.1138055977",
+                    gender: "entry.408196360",
+                    status: "entry.659472740",
+                    college: "entry.644204744", 
+                    department: "entry.702987340", 
+                    motivation: "entry.441084087",
+                    satisfaction1: "entry.716809508",
+                    satisfaction2: "entry.739406782",
+                    feedback: "entry.1167175727",
+                    futureTopics: "entry.886271649"
+                }
+            }
+        };
+
+        const assessmentItems = [
+            "當我開始撰寫報告時，我能清楚說明 EndNote 在學術寫作中，如何幫助我管理與引用參考文獻。",
+            "當我從線上學術資源找到文獻時，我能順利將書目資料匯出並匯入 EndNote Library 中。",
+            "當我下載了一篇重要的 PDF 全文，我能利用 PDF Import 功能，快速建立對應的書目資料。",
+            "為了有效管理不同研究主題的參考文獻，我能活用 Group 功能，為我的 EndNote Library 建立專屬的分類資料夾。",
+            "在 Word 中撰寫內文時，我能在需要的位置，即時插入 EndNote 中的引文，並自動生成參考書目。",
+            "當我的論文完稿要投稿或繳交前，我知道如何移除 Word 文件中 EndNote 的參數，轉換為純文字格式。"
+        ];
+
+        let currentPage = 'home-page';
+
+        function showPage(pageId) {
+            document.getElementById(currentPage).classList.add('hidden');
+            document.getElementById(pageId).classList.remove('hidden');
+            currentPage = pageId;
+            if (pageId === 'pre-test-page' || pageId === 'post-test-page') {
+                const target = pageId === 'pre-test-page' ? 'pre-test-form' : 'post-test-form';
+                renderAssessments(target);
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function renderAssessments(formId) {
+            const form = document.getElementById(formId);
+            if (!form || form.children.length > 0) return;
+            assessmentItems.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-white p-6 border rounded-lg shadow-sm';
+                div.innerHTML = `<p class="font-bold mb-4 text-gray-700 text-base">${index+1}. ${item}</p>
+                    <div class="likert-scale">
+                        ${[5,4,3,2,1].map(v => `<label class="text-xs sm:text-sm text-gray-500"><input type="radio" name="q${index}" value="${v}" required class="h-5 w-5 mb-1"> ${v}分</label>`).join('')}
+                    </div>`;
+                form.appendChild(div);
+            });
+        }
+
+        async function submitPreTest() {
+            const userId = document.getElementById('pre-test-user-id').value.trim();
+            if(!userId) return alert('請輸入您的學號或人事代碼');
+            const params = new URLSearchParams();
+            params.append(GOOGLE_FORM_CONFIG.preTest.entries.userId, userId);
+            for(let i=0; i<assessmentItems.length; i++) {
+                const val = document.querySelector(`#pre-test-form input[name="q${i}"]:checked`)?.value;
+                if(!val) return alert(`請完成第 ${i+1} 項評分`);
+                params.append(GOOGLE_FORM_CONFIG.preTest.entries[`q${i+1}`], val);
+            }
+            sendToGoogle(GOOGLE_FORM_CONFIG.preTest.url, params, "已收到您的課前填答，請專心上課唷!");
+        }
+
+        async function submitPostTest() {
+            const userId = document.getElementById('post-test-user-id').value.trim();
+            if(!userId) return alert('請輸入學號或人事代碼');
+
+            const params = new URLSearchParams();
+            params.append(GOOGLE_FORM_CONFIG.postTest.entries.userId, userId);
+            
+            for(let i=0; i<assessmentItems.length; i++) {
+                const val = document.querySelector(`#post-test-form input[name="q${i}"]:checked`)?.value;
+                if(!val) return alert(`請完成第一部分第 ${i+1} 項評鑑`);
+                params.append(GOOGLE_FORM_CONFIG.postTest.entries[`q${i+1}`], val);
+            }
+
+            const gender = document.getElementById('gender').value;
+            const status = document.getElementById('status').value;
+            const college = document.getElementById('college').value;
+            const department = document.getElementById('department').value.trim();
+            
+            if(!gender || !status || !college || !department) return alert('請完整填寫個人基本資料');
+
+            params.append(GOOGLE_FORM_CONFIG.postTest.entries.gender, gender);
+            params.append(GOOGLE_FORM_CONFIG.postTest.entries.status, status);
+            params.append(GOOGLE_FORM_CONFIG.postTest.entries.college, college);
+            params.append(GOOGLE_FORM_CONFIG.postTest.entries.department, department);
+            
+            const motivationCheckboxes = document.querySelectorAll('input[name="motivation"]:checked');
+            if(motivationCheckboxes.length === 0) return alert('請至少勾選一項參加動機');
+            motivationCheckboxes.forEach(cb => {
+                params.append(GOOGLE_FORM_CONFIG.postTest.entries.motivation, cb.value);
+            });
+
+            const sat1 = document.querySelector('input[name="q1-satisfaction"]:checked')?.value;
+            const sat2 = document.querySelector('input[name="q2-satisfaction"]:checked')?.value;
+            if(!sat1 || !sat2) return alert('請對滿意度調查進行評分');
+
+            params.append(GOOGLE_FORM_CONFIG.postTest.entries.satisfaction1, sat1);
+            params.append(GOOGLE_FORM_CONFIG.postTest.entries.satisfaction2, sat2);
+            params.append(GOOGLE_FORM_CONFIG.postTest.entries.feedback, document.getElementById('feedback').value);
+            params.append(GOOGLE_FORM_CONFIG.postTest.entries.futureTopics, document.getElementById('future-topics').value);
+
+            sendToGoogle(GOOGLE_FORM_CONFIG.postTest.url, params, "感謝您今日的參與及填寫回饋問卷。");
+        }
+
+        function sendToGoogle(url, params, successText) {
+            fetch(url, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                body: params.toString()
+            }).then(() => {
+                document.getElementById('success-message').textContent = successText;
+                showPage('results-page');
+            }).catch(() => alert('提交失敗，請檢查網路連接。'));
+        }
+
+        window.promptForCode = (type) => {
+            const modal = document.getElementById('prompt-modal');
+            const okBtn = document.getElementById('prompt-ok-button');
+            const inputField = document.getElementById('prompt-input');
+            inputField.value = '';
+            modal.classList.remove('hidden');
+            inputField.focus();
+            okBtn.onclick = () => {
+                // 更新後的後測進入代碼為 EN2026
+                if(inputField.value === 'EN2026') {
+                    modal.classList.add('hidden');
+                    showPage('post-test-page');
+                } else {
+                    alert('代碼錯誤');
+                }
+            };
+        };
+
+        window.onload = () => showPage('home-page');
+    </script>
+</body>
+</html>
