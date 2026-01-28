@@ -117,34 +117,34 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2">1. 生理性別 <span class="text-red-500">*</span></label>
                             <select id="gender" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" required>
                                 <option value="" disabled selected>請選擇...</option>
-                                <option value="男">男</option>
-                                <option value="女">女</option>
+                                <option>男</option>
+                                <option>女</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">2. 身分別 <span class="text-red-500">*</span></label>
                             <select id="status" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" required>
                                 <option value="" disabled selected>請選擇...</option>
-                                <option value="大學部">大學部</option>
-                                <option value="碩士生">碩士生</option>
-                                <option value="博士生">博士生</option>
-                                <option value="教師">教師</option>
-                                <option value="職員">職員</option>
-                                <option value="其它">其它</option>
+                                <option>大學部</option>
+                                <option>碩士生</option>
+                                <option>博士生</option>
+                                <option>教師</option>
+                                <option>職員</option>
+                                <option>其它</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2">3. 學院/單位 <span class="text-red-500">*</span></label>
                             <select id="college" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700" required>
                                 <option value="" disabled selected>請選擇...</option>
-                                <option value="人社院">人社院</option>
-                                <option value="外國語文學院">外國語文學院</option>
-                                <option value="理學院">理學院</option>
-                                <option value="法學院">法學院</option>
-                                <option value="商學院">商學院</option>
-                                <option value="巨量資料管理學院">巨量資料管理學院</option>
-                                <option value="行政單位">行政單位</option>
-                                <option value="其它">其它</option>
+                                <option>人文社會學院</option>
+                                <option>外國語文學院</option>
+                                <option>理學院</option>
+                                <option>法學院</option>
+                                <option>商學院</option>
+                                <option>巨量資料管理學院</option>
+                                <option>行政單位</option>
+                                <option>其它</option>
                             </select>
                         </div>
                         <div>
@@ -160,7 +160,7 @@
                             <label class="flex items-center"><input type="checkbox" name="motivation" value="對目前/未來工作有助益" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">對目前/未來工作有助益</span></label>
                             <label class="flex items-center"><input type="checkbox" name="motivation" value="老師推薦/課程要求" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">老師推薦/課程要求</span></label>
                             <label class="flex items-center"><input type="checkbox" name="motivation" value="對主題感興趣" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">對主題感興趣</span></label>
-                            <label class="flex items-center"><input type="checkbox" name="motivation" value="其他" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">其他</span></label>
+                            <label class="flex items-center"><input type="checkbox" name="motivation" value="其他：" class="h-4 w-4 text-blue-600"><span class="ml-2 text-gray-700">其他</span></label>
                         </div>
                     </div>
                     <div class="bg-white p-6 border rounded-lg shadow-sm">
@@ -240,8 +240,8 @@
                     q4: "entry.4395774", q5: "entry.965193955", q6: "entry.1262742436",
                     gender: "entry.408196360",
                     status: "entry.659472740",
-                    college: "entry.644204744", 
-                    department: "entry.702987340", 
+                    college: "entry.644204744", // 修正：原 702987340 為學系文字，644204744 為學院下拉
+                    department: "entry.702987340", // 修正
                     motivation: "entry.441084087",
                     satisfaction1: "entry.716809508",
                     satisfaction2: "entry.739406782",
@@ -343,32 +343,16 @@
             sendToGoogle(GOOGLE_FORM_CONFIG.postTest.url, formData, "感謝您今日的參與及填寫回饋問卷。");
         }
 
-        function sendToGoogle(url, formDataOrParams, successText) {
-    // Google Forms 的 formResponse 對 application/x-www-form-urlencoded 最穩定
-    // 將 FormData 轉為 URLSearchParams（可正確處理多選/複選與中文）
-    let params;
-
-    if (formDataOrParams instanceof URLSearchParams) {
-        params = formDataOrParams;
-    } else {
-        params = new URLSearchParams();
-        for (const [key, value] of formDataOrParams.entries()) {
-            params.append(key, value);
+        function sendToGoogle(url, formData, successText) {
+            fetch(url, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData
+            }).then(() => {
+                document.getElementById('success-message').textContent = successText;
+                showPage('results-page');
+            }).catch(() => alert('提交失敗，請檢查網路連接。'));
         }
-    }
-
-    fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-        },
-        body: params.toString()
-    }).then(() => {
-        document.getElementById('success-message').textContent = successText;
-        showPage('results-page');
-    }).catch(() => alert('提交失敗，請檢查網路連接。'));
-}
 
         window.promptForCode = (type) => {
             const modal = document.getElementById('prompt-modal');
@@ -391,4 +375,3 @@
     </script>
 </body>
 </html>
-
