@@ -138,7 +138,7 @@
 
         <!-- 驗證碼 Modal -->
         <div id="prompt-modal" class="hidden fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-            <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm">
+            <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-sm card-enter">
                 <h3 class="text-2xl font-bold mb-2">解鎖挑戰</h3>
                 <p class="text-gray-500 text-sm mb-6">請輸入課程中公佈的「後測代碼」</p>
                 <input type="text" id="prompt-input" class="w-full text-center text-3xl font-black tracking-widest border-2 border-gray-100 rounded-2xl py-4 mb-6 focus:border-green-500 outline-none uppercase transition-all" placeholder="••••">
@@ -197,19 +197,29 @@
         }
 
         function setupSteps() {
+            // 身分驗證 (必填)
             steps = [{ type: 'input', label: '身分驗證', question: '請輸入您的學號或人事代碼', id: 'userId', placeholder: '學號 / 人事代碼' }];
+            
+            // 技能評估 (必填)
             assessmentItems.forEach((item, i) => steps.push({ type: 'likert', label: `探險技能 ${i+1}`, question: item, id: `q${i+1}` }));
             
             if (questType === 'post') {
+                // 基本資料 (必填)
                 steps.push({ type: 'select', label: '基本資料', question: '生理性別', id: 'gender', options: ['男', '女'] });
                 steps.push({ type: 'select', label: '基本資料', question: '身分別', id: 'status', options: ['大學部', '碩士生', '博士生', '教師', '職員', '其它'] });
                 steps.push({ type: 'select', label: '基本資料', question: '學院/單位', id: 'college', options: ['人文社會學院', '外國語文學院', '理學院', '法學院', '商學院', '巨量資料管理學院', '行政單位', '其它'] });
                 steps.push({ type: 'input', label: '基本資料', question: '學系/單位', id: 'department', placeholder: '例如：法律系' });
+                
+                // 參與動機 (必填，至少勾一項)
                 steps.push({ type: 'checkbox', label: '參與動機', question: '請問您參加本次課程的動機為何？(多選)', id: 'motivation', options: ['提升論文寫作與研究能力', '增進個人專業知能', '對目前/未來工作有助益', '老師推薦/課程要求', '對主題感興趣', '其他'] });
+                
+                // 滿意度 (必填)
                 steps.push({ type: 'likert', label: '滿意度', question: '今日的課程講授，對於提昇我自己的研究／搜尋技能很有幫助', id: 'satisfaction1' });
                 steps.push({ type: 'likert', label: '滿意度', question: '主講人能夠正確並清楚地表達講授的內容', id: 'satisfaction2' });
-                steps.push({ type: 'textarea', label: '心得回饋', question: '對於本次課程的心得建議', id: 'feedback' });
-                steps.push({ type: 'textarea', label: '未來期望', question: '下次希望參加的課程內容', id: 'futureTopics' });
+                
+                // 選填欄位
+                steps.push({ type: 'textarea', label: '心得回饋', question: '對於本次課程的心得建議', id: 'feedback', optional: true });
+                steps.push({ type: 'textarea', label: '未來期望', question: '下次希望參加的課程內容', id: 'futureTopics', optional: true });
             }
         }
 
@@ -226,7 +236,14 @@
             content.classList.add('content-fade');
 
             content.innerHTML = ''; 
-            questionText.innerText = step.question;
+            
+            // 標示必填或選填
+            if (step.optional) {
+                questionText.innerHTML = `${step.question} <span class="text-gray-400 text-sm font-normal ml-2">(選填)</span>`;
+            } else {
+                questionText.innerHTML = `${step.question} <span class="text-red-500 font-bold ml-1">*</span>`;
+            }
+
             stepBadge.innerText = step.label;
             indicator.innerText = `${String(currentStep + 1).padStart(2, '0')} / ${steps.length}`;
             
@@ -249,6 +266,7 @@
                 el.className = 'w-full border-2 border-gray-100 rounded-2xl p-4 text-lg outline-none focus:border-blue-500 transition-all';
                 el.rows = 4;
                 el.value = answers[step.id] || '';
+                el.placeholder = step.optional ? '您可以直接點擊 NEXT 跳過此題' : '在此輸入您的想法...';
                 content.appendChild(el);
             } else if (step.type === 'likert') {
                 const grid = document.createElement('div');
@@ -275,7 +293,6 @@
                 labels.innerHTML = `<span>${leftLabel}</span><span>${rightLabel}</span>`;
                 content.appendChild(labels);
 
-                // 僅在「技能評估」時顯示評分說明，滿意度則不顯示
                 if (step.label !== '滿意度') {
                     const criteriaBox = document.createElement('div');
                     criteriaBox.className = 'mt-8 p-4 bg-gray-50 rounded-2xl border border-gray-100';
@@ -329,16 +346,28 @@
 
         function nextStep() {
             const step = steps[currentStep];
+            
+            // 基礎資料欄位驗證
             if (step.type === 'input' || step.type === 'textarea' || step.type === 'select') {
                 const el = document.getElementById(`input-${step.id}`);
                 const val = el ? el.value.trim() : '';
-                if (!val) return alert('請填寫此欄位以繼續探險！');
+                if (!val && !step.optional) {
+                    return alert('此欄位為必填項目，請輸入內容以繼續。');
+                }
                 answers[step.id] = val;
-            } else if (step.type === 'likert') {
-                if (!answers[step.id]) return alert('請選擇一個評分！');
-            } else if (step.type === 'checkbox') {
+            } 
+            // 評分量表驗證
+            else if (step.type === 'likert') {
+                if (!answers[step.id] && !step.optional) {
+                    return alert('請選擇一個評分以繼續探險。');
+                }
+            } 
+            // 複選框驗證 (動機需至少勾一項)
+            else if (step.type === 'checkbox') {
                 const checked = Array.from(document.querySelectorAll(`input[name="${step.id}"]:checked`)).map(c => c.value);
-                if (checked.length === 0) return alert('請至少選擇一項！');
+                if (checked.length === 0 && !step.optional) {
+                    return alert('請至少勾選一項參加動機！');
+                }
                 answers[step.id] = checked;
             }
 
@@ -360,19 +389,30 @@
         function submitFinal() {
             const config = questType === 'pre' ? CONFIG.preTest : CONFIG.postTest;
             const formData = new FormData();
+            
+            // 加入學號
             formData.append(config.entries.userId, answers.userId);
-            for(let i=1; i<=6; i++) formData.append(config.entries[`q${i}`], answers[`q${i}`]);
+            
+            // 加入前 6 題評估
+            for(let i=1; i<=6; i++) {
+                formData.append(config.entries[`q${i}`], answers[`q${i}`]);
+            }
             
             if (questType === 'post') {
                 formData.append(config.entries.gender, answers.gender);
                 formData.append(config.entries.status, answers.status);
                 formData.append(config.entries.college, answers.college);
                 formData.append(config.entries.department, answers.department);
-                (answers.motivation || []).forEach(m => formData.append(config.entries.motivation, m));
+                
+                // 動機複選處理
+                if (answers.motivation) {
+                    answers.motivation.forEach(m => formData.append(config.entries.motivation, m));
+                }
+                
                 formData.append(config.entries.satisfaction1, answers.satisfaction1);
                 formData.append(config.entries.satisfaction2, answers.satisfaction2);
-                formData.append(config.entries.feedback, answers.feedback);
-                formData.append(config.entries.futureTopics, answers.futureTopics);
+                formData.append(config.entries.feedback, answers.feedback || "");
+                formData.append(config.entries.futureTopics, answers.futureTopics || "");
             }
 
             fetch(config.url, { method: 'POST', mode: 'no-cors', body: formData })
