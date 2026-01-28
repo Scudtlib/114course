@@ -294,11 +294,11 @@
                 el.rows = 4;
                 el.value = answers[step.id] || '';
                 
-                // 具鼓勵性的 placeholder
+                // 具鼓勵性的 placeholder，已去除跳過提示
                 if (step.id === 'feedback') {
-                    el.placeholder = '您的寶貴回饋是我們進步的最大動力，請分享您的心得... (不填寫可直接點擊 NEXT)';
+                    el.placeholder = '您的寶貴回饋是我們進步的最大動力，請分享您的心得...';
                 } else if (step.id === 'futureTopics') {
-                    el.placeholder = '還有什麼想學的嗎？您的期待我們都聽到了，請告訴我們... (不填寫可直接點擊 NEXT)';
+                    el.placeholder = '還有什麼想學的嗎？您的期待我們都聽到了，請告訴我們...';
                 } else {
                     el.placeholder = '在此輸入您的想法...';
                 }
