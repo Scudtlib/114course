@@ -156,8 +156,8 @@
             { type: 'select', label: '基本資料', question: '1. 您的生理性別', id: 'gender', options: ['男', '女'] },
             { type: 'select', label: '基本資料', question: '2. 您的身分別', id: 'status', options: ['大學部', '碩士生', '博士生', '教師', '職員', '其它'] },
             { type: 'select', label: '基本資料', question: '3. 所屬學院/單位', id: 'college', options: ['人社院', '外國語文學院', '理學院', '法學院', '商學院', '巨量資料管理學院', '行政單位', '其它'] },
-            { type: 'input', label: '基本資料', question: '4. 所屬學系/單位', id: 'department', placeholder: '例如：企管系、資訊處' },
-            { type: 'checkbox', label: '參與動機', question: '5. 請問您參加本次課程的動機為何？(可複選)', id: 'motivation', options: ['提升論文寫作與研究能力', '增進個人專業知能', '對目前/未來工作有助益', '老師推薦/課程要求', '對主題感興趣'] },
+            { type: 'input', label: '基本資料', question: '4. 所屬學系/單位', id: 'department', placeholder: '例如：企管系' },
+            { type: 'checkbox', label: '參與動機', question: '5. 請問您參加本次課程的動機為何？(可複選)', id: 'motivation', options: ['提升論文寫作與研究能力', '增進個人專業知能', '對目前/未來工作有助益', '老師推薦/課程要求', '對主題感興趣', '其他'] },
             { type: 'likert', label: '滿意度評估', question: '6. 本課程對於提昇我自己的研究／搜尋技能很有幫助', id: 'q1' },
             { type: 'likert', label: '滿意度評估', question: '7. 主講人能夠正確並清楚地表達講授的內容', id: 'q2' },
             { type: 'textarea', label: '心得回饋', question: '8. 對於本次課程，您有任何建議或想分享的心得嗎?', id: 'feedback', optional: true },
@@ -250,10 +250,36 @@
                 step.options.forEach(o => {
                     const label = document.createElement('label');
                     label.className = 'flex items-center p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-colors border-2 border-transparent';
-                    const isChecked = (answers[step.id] || []).includes(o);
-                    label.innerHTML = `
+                    
+                    const answerList = answers[step.id] || [];
+                    const isChecked = o === '其他' ? answerList.some(v => v.startsWith('其他')) : answerList.includes(o);
+                    
+                    let innerContent = `
                         <input type="checkbox" name="${step.id}" value="${o}" ${isChecked ? 'checked' : ''} class="w-6 h-6 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                        <span class="ml-4 font-bold text-gray-700">${o}</span>`;
+                        <span class="ml-4 font-bold text-gray-700">${o}</span>
+                    `;
+                    
+                    label.innerHTML = innerContent;
+
+                    if (o === '其他') {
+                        const otherVal = answerList.find(v => v.startsWith('其他:'))?.replace('其他: ', '') || '';
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.id = 'other-text';
+                        input.placeholder = '請說明...';
+                        input.value = otherVal;
+                        input.className = 'ml-4 flex-1 border-b-2 border-gray-300 focus:border-indigo-500 outline-none px-2 py-1 text-sm bg-transparent';
+                        input.style.display = isChecked ? 'inline-block' : 'none';
+                        label.appendChild(input);
+
+                        input.onclick = (e) => e.stopPropagation();
+
+                        const checkbox = label.querySelector('input');
+                        checkbox.onchange = (e) => {
+                            input.style.display = e.target.checked ? 'inline-block' : 'none';
+                            if (e.target.checked) input.focus();
+                        };
+                    }
                     wrapper.appendChild(label);
                 });
                 content.appendChild(wrapper);
@@ -281,7 +307,13 @@
                 }
                 answers[step.id] = val;
             } else if (step.type === 'checkbox') {
-                const checked = Array.from(document.querySelectorAll(`input[name="${step.id}"]:checked`)).map(c => c.value);
+                const checked = Array.from(document.querySelectorAll(`input[name="${step.id}"]:checked`)).map(c => {
+                    if (c.value === '其他') {
+                        const otherVal = document.getElementById('other-text').value.trim();
+                        return otherVal ? `其他: ${otherVal}` : '其他';
+                    }
+                    return c.value;
+                });
                 if (checked.length === 0 && !step.optional) {
                     if (event && event.type === 'click') alert('請至少勾選一項！');
                     return;
