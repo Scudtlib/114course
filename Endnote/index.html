@@ -285,7 +285,7 @@
             const progress = ((currentStep) / (steps.length - 1)) * 100;
             document.getElementById('main-progress').style.width = `${progress}%`;
             document.getElementById('prev-btn').style.visibility = currentStep === 0 ? 'hidden' : 'visible';
-            nextBtn.innerText = currentStep === steps.length - 1 ? 'FINISH' : 'NEXT';
+            nextBtn.innerHTML = currentStep === steps.length - 1 ? 'FINISH' : 'NEXT'; // 確保變回純文字 NEXT/FINISH
 
             if (step.type === 'input') {
                 const el = document.createElement('input');
@@ -423,8 +423,18 @@
         // ==========================================
         function submitFinal() {
             const nextBtn = document.getElementById('next-btn');
+            
+            // ★ 優化 UX: 鎖定按鈕，顯示 loading 圈圈與中文提示，並隱藏返回按鈕
             nextBtn.disabled = true;
-            nextBtn.innerText = "SUBMITTING...";
+            nextBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                資料傳送中...
+            `;
+            nextBtn.classList.add('cursor-not-allowed', 'opacity-90');
+            document.getElementById('prev-btn').style.visibility = 'hidden';
 
             try {
                 // 判斷現在是前測還是後測
@@ -490,14 +500,20 @@
                 }).catch(err => {
                     console.error("發送失敗:", err);
                     alert('提交失敗，請檢查網路連接。');
+                    // ★ 失敗時復原按鈕狀態，讓學生可以重新點擊
                     nextBtn.disabled = false;
-                    nextBtn.innerText = "FINISH";
+                    nextBtn.innerHTML = "重新送出";
+                    nextBtn.classList.remove('cursor-not-allowed', 'opacity-90');
+                    document.getElementById('prev-btn').style.visibility = 'visible';
                 });
             } catch (err) {
                 console.error("程式內部錯誤:", err);
                 alert('系統處理資料時發生錯誤，請重試或通知管理員。');
+                // ★ 失敗時復原按鈕狀態
                 nextBtn.disabled = false;
-                nextBtn.innerText = "FINISH";
+                nextBtn.innerHTML = "重新送出";
+                nextBtn.classList.remove('cursor-not-allowed', 'opacity-90');
+                document.getElementById('prev-btn').style.visibility = 'visible';
             }
         }
 
