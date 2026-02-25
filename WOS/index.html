@@ -152,7 +152,10 @@
     </div>
 
     <script>
-        const CONFIG = {
+        // =================================================================
+        // 【Part A. 個別表單設定】(Web of Science 專屬表單)
+        // =================================================================
+        const INDIVIDUAL_CONFIG = {
             preTest: {
                 url: "https://docs.google.com/forms/d/e/1FAIpQLSezYLkI1AmMMYdV80Dq0gLlwm0lzT0_4F-LfFgA2jnxEC0qeQ/formResponse",
                 entries: { userId: "entry.378923667", q1: "entry.241033281", q2: "entry.183905554", q3: "entry.469725819", q4: "entry.4395774", q5: "entry.965193955", q6: "entry.1262742436" }
@@ -162,6 +165,40 @@
                 entries: { userId: "entry.378923667", q1: "entry.241033281", q2: "entry.183905554", q3: "entry.469725819", q4: "entry.4395774", q5: "entry.965193955", q6: "entry.1262742436", gender: "entry.408196360", status: "entry.659472740", college: "entry.644204744", department: "entry.702987340", motivation: "entry.441084087", satisfaction1: "entry.716809508", satisfaction2: "entry.739406782", feedback: "entry.1167175727", futureTopics: "entry.886271649" }
             }
         };
+
+        // =================================================================
+        // 【Part B. 通用表單設定】(與全課程通用，固定不變)
+        // =================================================================
+        const UNIVERSAL_CONFIG = {
+            preTest: {
+                url: "https://docs.google.com/forms/d/e/1FAIpQLSebvbnwVjGw9bU5SswoOOqcgEpsGqGXcCS9cjbULoj9GgP7fA/formResponse",
+                entries: {
+                    userId: "entry.378923667",
+                    courseName: "entry.207688569", 
+                    q1: "entry.241033281", q2: "entry.183905554", q3: "entry.469725819",
+                    q4: "entry.4395774", q5: "entry.965193955", q6: "entry.1262742436"
+                }
+            },
+            postTest: {
+                url: "https://docs.google.com/forms/d/e/1FAIpQLSemgxf1zwIUgpwAntjUDJxcGHA6Q_BfS-VJkoa4jHfJVLHCRA/formResponse",
+                entries: {
+                    userId: "entry.378923667",
+                    courseName: "entry.33355873", 
+                    q1: "entry.1311432896", q2: "entry.1028846456", q3: "entry.1233448344",
+                    q4: "entry.1856125138", q5: "entry.2019687499", q6: "entry.1138055977",
+                    gender: "entry.408196360", status: "entry.659472740", college: "entry.644204744", 
+                    department: "entry.702987340", motivation: "entry.441084087", satisfaction1: "entry.716809508",
+                    satisfaction2: "entry.739406782", feedback: "entry.1167175727", futureTopics: "entry.886271649"
+                }
+            }
+        };
+
+        // ========================================================================================
+        // 🚨 永久免維護設定 🚨
+        // 請確保這裡的名稱與 Notion 資料庫裡的名稱「一模一樣」
+        // ========================================================================================
+        const COURSE_NAME = "Web of Science 西文引用文獻資料庫"; 
+
 
         const assessmentItems = [
             "為了精準查找文獻，我能運用布林邏輯 (AND/OR/NOT) 或 引號 \" \" 來組合關鍵字，排除不相關的結果。",
@@ -250,7 +287,7 @@
             const progress = ((currentStep) / (steps.length - 1)) * 100;
             document.getElementById('main-progress').style.width = `${progress}%`;
             document.getElementById('prev-btn').style.visibility = currentStep === 0 ? 'hidden' : 'visible';
-            nextBtn.innerText = currentStep === steps.length - 1 ? 'FINISH' : 'NEXT';
+            nextBtn.innerHTML = currentStep === steps.length - 1 ? 'FINISH' : 'NEXT'; // 確保變回純文字
 
             if (step.type === 'input') {
                 const el = document.createElement('input');
@@ -386,44 +423,103 @@
             }
         }
 
+        // ==========================================
+        // 核心提交函式：雙軌發送 (Dual Submit) + 動態 Loading
+        // ==========================================
         function submitFinal() {
-            const config = questType === 'pre' ? CONFIG.preTest : CONFIG.postTest;
-            const formData = new FormData();
+            const nextBtn = document.getElementById('next-btn');
             
-            // 加入學號
-            formData.append(config.entries.userId, answers.userId);
-            
-            // 加入前 6 題評估
-            for(let i=1; i<=6; i++) {
-                formData.append(config.entries[`q${i}`], answers[`q${i}`]);
-            }
-            
-            if (questType === 'post') {
-                formData.append(config.entries.gender, answers.gender);
-                formData.append(config.entries.status, answers.status);
-                formData.append(config.entries.college, answers.college);
-                formData.append(config.entries.department, answers.department);
-                
-                // 動機複選處理
-                if (answers.motivation) {
-                    answers.motivation.forEach(m => formData.append(config.entries.motivation, m));
-                }
-                
-                formData.append(config.entries.satisfaction1, answers.satisfaction1);
-                formData.append(config.entries.satisfaction2, answers.satisfaction2);
-                formData.append(config.entries.feedback, answers.feedback || "");
-                formData.append(config.entries.futureTopics, answers.futureTopics || "");
-            }
+            // ★ 優化 UX: 鎖定按鈕，顯示 loading 圈圈與中文提示，並隱藏返回按鈕
+            nextBtn.disabled = true;
+            nextBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                資料傳送中...
+            `;
+            nextBtn.classList.add('cursor-not-allowed', 'opacity-90');
+            document.getElementById('prev-btn').style.visibility = 'hidden';
 
-            fetch(config.url, { method: 'POST', mode: 'no-cors', body: formData })
-            .then(() => {
-                document.getElementById('success-message').innerText = questType === 'pre' ? 
-                    '初始數據已紀錄，請準備開始今日的課程！' : 
-                    '恭喜完成傳奇冒險！你的回饋將使以後的探險家受益無窮。';
-                document.getElementById('quest-page').classList.add('hidden');
-                document.getElementById('results-page').classList.remove('hidden');
-                document.getElementById('progress-container').classList.add('hidden');
-            });
+            try {
+                // 判斷現在是前測還是後測
+                const indConfig = questType === 'pre' ? INDIVIDUAL_CONFIG.preTest : INDIVIDUAL_CONFIG.postTest;
+                const uniConfig = questType === 'pre' ? UNIVERSAL_CONFIG.preTest : UNIVERSAL_CONFIG.postTest;
+
+                const buildParams = (configEntries, isUniversal) => {
+                    const params = new URLSearchParams();
+                    
+                    if (configEntries.userId) params.append(configEntries.userId, answers.userId || "");
+                    
+                    // 通用表單專屬：寫入強制指定的課程名稱
+                    if (isUniversal && configEntries.courseName) {
+                        params.append(configEntries.courseName, COURSE_NAME);
+                    }
+
+                    for(let i=1; i<=6; i++) {
+                        if (configEntries[`q${i}`]) params.append(configEntries[`q${i}`], answers[`q${i}`] || "");
+                    }
+
+                    if (questType === 'post') {
+                        if (configEntries.gender) params.append(configEntries.gender, answers.gender || "");
+                        if (configEntries.status) params.append(configEntries.status, answers.status || "");
+                        if (configEntries.college) params.append(configEntries.college, answers.college || "");
+                        if (configEntries.department) params.append(configEntries.department, answers.department || "");
+                        
+                        if (configEntries.motivation && answers.motivation && Array.isArray(answers.motivation)) {
+                            answers.motivation.forEach(m => params.append(configEntries.motivation, m));
+                        }
+
+                        if (configEntries.satisfaction1) params.append(configEntries.satisfaction1, answers.satisfaction1 || "");
+                        if (configEntries.satisfaction2) params.append(configEntries.satisfaction2, answers.satisfaction2 || "");
+                        if (configEntries.feedback) params.append(configEntries.feedback, answers.feedback || "");
+                        if (configEntries.futureTopics) params.append(configEntries.futureTopics, answers.futureTopics || "");
+                    }
+                    return params;
+                };
+
+                const indParams = buildParams(indConfig.entries, false);
+                const uniParams = buildParams(uniConfig.entries, true);
+
+                Promise.all([
+                    fetch(indConfig.url, { 
+                        method: 'POST', 
+                        mode: 'no-cors', 
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                        body: indParams.toString() 
+                    }),
+                    fetch(uniConfig.url, { 
+                        method: 'POST', 
+                        mode: 'no-cors', 
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                        body: uniParams.toString() 
+                    })
+                ])
+                .then(() => {
+                    document.getElementById('success-message').innerText = questType === 'pre' ? 
+                        '初始數據已紀錄，請準備開始今日的課程！' : 
+                        '恭喜完成傳奇冒險！你的回饋將使以後的探險家受益無窮。';
+                    document.getElementById('quest-page').classList.add('hidden');
+                    document.getElementById('results-page').classList.remove('hidden');
+                    document.getElementById('progress-container').classList.add('hidden');
+                }).catch(err => {
+                    console.error("發送失敗:", err);
+                    alert('提交失敗，請檢查網路連接。');
+                    // ★ 失敗時復原按鈕狀態，讓學生可以重新點擊
+                    nextBtn.disabled = false;
+                    nextBtn.innerHTML = "重新送出";
+                    nextBtn.classList.remove('cursor-not-allowed', 'opacity-90');
+                    document.getElementById('prev-btn').style.visibility = 'visible';
+                });
+            } catch (err) {
+                console.error("程式內部錯誤:", err);
+                alert('系統處理資料時發生錯誤，請重試或通知管理員。');
+                // ★ 失敗時復原按鈕狀態
+                nextBtn.disabled = false;
+                nextBtn.innerHTML = "重新送出";
+                nextBtn.classList.remove('cursor-not-allowed', 'opacity-90');
+                document.getElementById('prev-btn').style.visibility = 'visible';
+            }
         }
 
         function promptForCode() {
@@ -442,5 +538,4 @@
         }
     </script>
 </body>
-
 </html>
