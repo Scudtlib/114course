@@ -197,7 +197,7 @@
         // 🚨 永久免維護設定 🚨
         // 請確保這裡的名稱與 Notion 資料庫裡的名稱「一模一樣」
         // ========================================================================================
-        const COURSE_NAME = "Web of Science 西文引用文獻資料庫"; 
+        const COURSE_NAME = "Web of Science"; 
 
 
         const assessmentItems = [
@@ -254,9 +254,9 @@
                 steps.push({ type: 'likert', label: '滿意度', question: '今日的課程講授，對於提昇我自己的研究／搜尋技能很有幫助', id: 'satisfaction1' });
                 steps.push({ type: 'likert', label: '滿意度', question: '主講人能夠正確並清楚地表達講授的內容', id: 'satisfaction2' });
                 
-                // 選填欄位
-                steps.push({ type: 'textarea', label: '心得回饋', question: '對於本次課程的心得建議', id: 'feedback', optional: true });
-                steps.push({ type: 'textarea', label: '未來期望', question: '下次希望參加的課程內容', id: 'futureTopics', optional: true });
+                // 選填欄位 (★ 加入專屬的鼓勵 placeholder)
+                steps.push({ type: 'textarea', label: '心得回饋', question: '對於本次課程的心得建議', id: 'feedback', optional: true, placeholder: '您的回饋是我們升級的經驗值，歡迎暢所欲言！' });
+                steps.push({ type: 'textarea', label: '未來期望', question: '下次希望參加的課程內容', id: 'futureTopics', optional: true, placeholder: '許願池開放中！告訴我們您想解鎖什麼新技能？' });
             }
         }
 
@@ -274,9 +274,9 @@
 
             content.innerHTML = ''; 
             
-            // 標示必填或選填
+            // 標示必填或選填 (★ 修改選填的視覺與文字)
             if (step.optional) {
-                questionText.innerHTML = `${step.question} <span class="text-gray-400 text-sm font-normal ml-2">(選填)</span>`;
+                questionText.innerHTML = `${step.question} <span class="text-blue-500 text-sm font-bold ml-2">(✨ 期待您的分享)</span>`;
             } else {
                 questionText.innerHTML = `${step.question} <span class="text-red-500 font-bold ml-1">*</span>`;
             }
@@ -303,7 +303,8 @@
                 el.className = 'w-full border-2 border-gray-100 rounded-2xl p-4 text-lg outline-none focus:border-blue-500 transition-all';
                 el.rows = 4;
                 el.value = answers[step.id] || '';
-                el.placeholder = step.optional ? '您可以直接點擊 NEXT 跳過此題' : '在此輸入您的想法...';
+                // ★ 優先使用專屬 placeholder，若無則顯示通用鼓勵文字
+                el.placeholder = step.placeholder || (step.optional ? '歡迎分享您的想法...' : '在此輸入您的想法...');
                 content.appendChild(el);
             } else if (step.type === 'likert') {
                 const grid = document.createElement('div');
