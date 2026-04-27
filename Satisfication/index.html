@@ -45,15 +45,15 @@
             100% { opacity: 0; transform: translateY(-60px) scale(1.5); }
         }
 
-        .likert-btn {
+        .likert-btn, .choice-btn {
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border: 2px solid #f3f4f6;
             background: white;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
         }
-        .likert-btn:active { transform: scale(0.95); }
-        .likert-btn.selected { 
+        .likert-btn:active, .choice-btn:active { transform: scale(0.98); }
+        .likert-btn.selected, .choice-btn.selected { 
             background-color: var(--primary); 
             color: white; 
             border-color: var(--primary); 
@@ -153,9 +153,9 @@
 
         const steps = [
             { type: 'input', label: '基本資料', question: '請輸入您的學號或人事代碼', id: 'userId', placeholder: '學號 / 人事代碼' },
-            { type: 'select', label: '基本資料', question: '1. 您的生理性別', id: 'gender', options: ['男', '女'] },
-            { type: 'select', label: '基本資料', question: '2. 您的身分別', id: 'status', options: ['大學部', '碩士生', '博士生', '教師', '職員', '其他'] },
-            { type: 'select', label: '基本資料', question: '3. 所屬學院/單位', id: 'college', options: ['人文社會學院', '外國語文學院', '理學院', '法學院', '商學院', '巨量資料管理學院', '行政單位', '其他'] },
+            { type: 'choice', label: '基本資料', question: '1. 您的生理性別', id: 'gender', options: ['男', '女'] },
+            { type: 'choice', label: '基本資料', question: '2. 您的身分別', id: 'status', options: ['大學部', '碩士生', '博士生', '教師', '職員', '其他'] },
+            { type: 'choice', label: '基本資料', question: '3. 所屬學院/單位', id: 'college', options: ['人文社會學院', '外國語文學院', '理學院', '法學院', '商學院', '巨量資料管理學院', '行政單位', '其他'] },
             { type: 'input', label: '基本資料', question: '4. 所屬學系/單位', id: 'department', placeholder: '例如：企管系' },
             { type: 'checkbox', label: '參與動機', question: '5. 請問您參加本次課程的動機為何？(可複選)', id: 'motivation', options: ['提升論文寫作與研究能力', '增進個人專業知能', '對目前/未來工作有助益', '老師推薦/課程要求', '對主題感興趣', '其他'] },
             { type: 'likert', label: '滿意度評估', question: '6. 本課程對於提昇我自己的研究／搜尋技能很有幫助', id: 'q1' },
@@ -237,13 +237,23 @@
                 labels.className = 'flex justify-between mt-4 text-xs text-gray-400 font-bold px-2';
                 labels.innerHTML = `<span>非常同意 🤩</span><span>非常不同意 😤</span>`;
                 content.appendChild(labels);
-            } else if (step.type === 'select') {
-                const el = document.createElement('select');
-                el.id = `input-${step.id}`;
-                el.className = 'w-full border-2 border-gray-100 rounded-2xl p-4 text-xl font-bold outline-none focus:border-indigo-500 transition-all';
-                el.innerHTML = `<option value="">請點擊選擇...</option>` + step.options.map(o => `<option value="${o}" ${answers[step.id] === o ? 'selected' : ''}>${o}</option>`).join('');
-                content.appendChild(el);
-                el.onchange = () => { answers[step.id] = el.value; setTimeout(nextStep, 300); };
+            } else if (step.type === 'choice') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex flex-col space-y-3 mt-2';
+                step.options.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = `choice-btn w-full p-4 rounded-2xl text-lg font-bold text-left ${answers[step.id] === o ? 'selected' : ''}`;
+                    btn.innerHTML = `<span>${o}</span>`;
+                    btn.onclick = (e) => {
+                        answers[step.id] = o;
+                        Array.from(wrapper.children).forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        createXP(e.clientX, e.clientY);
+                        setTimeout(nextStep, 350);
+                    };
+                    wrapper.appendChild(btn);
+                });
+                content.appendChild(wrapper);
             } else if (step.type === 'checkbox') {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'space-y-3';
@@ -298,7 +308,7 @@
 
         function nextStep() {
             const step = steps[currentStep];
-            if (step.type === 'input' || step.type === 'textarea' || step.type === 'select') {
+            if (step.type === 'input' || step.type === 'textarea') {
                 const el = document.getElementById(`input-${step.id}`);
                 const val = el ? el.value.trim() : '';
                 if (!val && !step.optional) {
@@ -306,6 +316,11 @@
                     return;
                 }
                 answers[step.id] = val;
+            } else if (step.type === 'choice' || step.type === 'likert') {
+                if (!answers[step.id] && !step.optional) {
+                    if (event && event.type === 'click') alert('請選擇一個選項以繼續任務！');
+                    return;
+                }
             } else if (step.type === 'checkbox') {
                 const checked = Array.from(document.querySelectorAll(`input[name="${step.id}"]:checked`)).map(c => {
                     if (c.value === '其他') {
@@ -319,11 +334,6 @@
                     return;
                 }
                 answers[step.id] = checked;
-            } else if (step.type === 'likert') {
-                if (!answers[step.id] && !step.optional) {
-                    if (event && event.type === 'click') alert('請選擇一個評分以繼續任務！');
-                    return;
-                }
             }
 
             if (currentStep < steps.length - 1) {
