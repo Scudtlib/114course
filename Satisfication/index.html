@@ -115,7 +115,7 @@
                     <h2 id="question-text" class="text-xl md:text-2xl font-bold text-gray-800 mt-4 leading-relaxed">載入任務中...</h2>
                 </div>
 
-                <div id="question-content" class="min-h-[180px]">
+                <div id="question-content" class="min-h-[220px]">
                     <!-- 動態內容將插入於此 -->
                 </div>
 
@@ -144,16 +144,19 @@
     </div>
 
     <script>
-        // Google 表單配置 (精確對應連結 ID)
+        // Google 表單配置 (精確對應連結 ID 與「其他」特殊欄位)
         const FORM_CONFIG = {
             url: "https://docs.google.com/forms/d/e/1FAIpQLSeoDEfuo2VHZD_JfyUhNBzZi96EtiwN1__UF3InlWVgnPOR7Q/formResponse",
             entries: {
                 userId: "entry.378923667",
                 gender: "entry.408196360",
                 status: "entry.659472740",
+                statusOther: "entry.659472740.other_option_response",
                 college: "entry.644204744",
+                collegeOther: "entry.644204744.other_option_response",
                 department: "entry.702987340",
                 motivation: "entry.441084087",
+                motivationOther: "entry.441084087.other_option_response",
                 q1: "entry.716809508",
                 q2: "entry.739406782",
                 feedback: "entry.1167175727",
@@ -164,10 +167,10 @@
         const steps = [
             { type: 'input', label: '基本資料', question: '請輸入您的學號或人事代碼', id: 'userId', placeholder: '學號 / 人事代碼' },
             { type: 'select', label: '基本資料', question: '1. 您的生理性別', id: 'gender', options: ['男', '女'] },
-            { type: 'select', label: '基本資料', question: '2. 您的身分別', id: 'status', options: ['大學部', '碩士生', '博士生', '教師', '職員', '其他'] },
-            { type: 'select', label: '基本資料', question: '3. 所屬學院/單位', id: 'college', options: ['人文社會學院', '外國語文學院', '理學院', '法學院', '商學院', '巨量資料管理學院', '行政單位', '其他'] },
+            { type: 'select', label: '基本資料', question: '2. 您的身分別', id: 'status', options: ['大學部', '碩士生', '博士生', '教師', '職員', '其他'], hasOther: true },
+            { type: 'select', label: '基本資料', question: '3. 所屬學院/單位', id: 'college', options: ['人文社會學院', '外國語文學院', '理學院', '法學院', '商學院', '巨量資料管理學院', '行政單位', '其他'], hasOther: true },
             { type: 'input', label: '基本資料', question: '4. 所屬學系/單位', id: 'department', placeholder: '例如：企管系' },
-            { type: 'checkbox', label: '參與動機', question: '5. 請問您參加本次課程的動機為何？(可複選)', id: 'motivation', options: ['提升論文寫作與研究能力', '增進個人專業知能', '對目前/未來工作有助益', '老師推薦/課程要求', '對主題感興趣', '其他'] },
+            { type: 'checkbox', label: '參與動機', question: '5. 請問您參加本次課程的動機為何？(可複選)', id: 'motivation', options: ['提升論文寫作與研究能力', '增進個人專業知能', '對目前/未來工作有助益', '老師推薦/課程要求', '對主題感興趣', '其他'], hasOther: true },
             { type: 'likert', label: '滿意度評估', question: '6. 今日的課程講授，對於提昇我自己的研究／搜尋技能很有幫助', id: 'q1' },
             { type: 'likert', label: '滿意度評估', question: '7. 主講人能夠正確並清楚地表達講授的內容', id: 'q2' },
             { type: 'textarea', label: '心得回饋', question: '8. 對於本次課程，您有任何建議或想分享的心得嗎?', id: 'feedback', optional: true },
@@ -248,33 +251,70 @@
                 labels.innerHTML = `<span>非常同意 🤩</span><span>非常不同意 😤</span>`;
                 content.appendChild(labels);
             } else if (step.type === 'select') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'space-y-4';
+                
                 const select = document.createElement('select');
                 select.id = `input-${step.id}`;
                 select.className = 'w-full border-2 border-gray-200 rounded-2xl p-4 text-xl font-bold outline-none focus:border-indigo-500 transition-all bg-white cursor-pointer';
                 
-                const savedVal = answers[step.id] || "";
-                select.innerHTML = `<option value="" disabled ${!savedVal ? 'selected' : ''}>請點擊選擇...</option>` + 
-                                  step.options.map(o => `<option value="${o}" ${savedVal === o ? 'selected' : ''}>${o}</option>`).join('');
+                const saved = answers[step.id] || { value: '', otherText: '' };
+                select.innerHTML = `<option value="" disabled ${!saved.value ? 'selected' : ''}>請點擊選擇...</option>` + 
+                                  step.options.map(o => `<option value="${o}" ${saved.value === o ? 'selected' : ''}>${o}</option>`).join('');
                 
+                const otherInp = document.createElement('input');
+                otherInp.type = 'text';
+                otherInp.id = `input-${step.id}-other`;
+                otherInp.placeholder = '請詳細填寫...';
+                otherInp.value = saved.otherText || '';
+                otherInp.className = 'w-full border-b-2 border-indigo-200 py-3 text-lg font-bold outline-none focus:border-indigo-500 transition-all mt-2';
+                otherInp.style.display = saved.value === '其他' ? 'block' : 'none';
+
                 select.onchange = () => {
-                    answers[step.id] = select.value;
-                    setTimeout(nextStep, 350);
+                    if (select.value === '其他') {
+                        otherInp.style.display = 'block';
+                        otherInp.focus();
+                    } else {
+                        otherInp.style.display = 'none';
+                        otherInp.value = '';
+                        answers[step.id] = { value: select.value, otherText: '' };
+                        setTimeout(nextStep, 350);
+                    }
                 };
-                content.appendChild(select);
+                wrapper.appendChild(select);
+                wrapper.appendChild(otherInp);
+                content.appendChild(wrapper);
             } else if (step.type === 'checkbox') {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'space-y-3';
+                
+                const saved = answers[step.id] || { values: [], otherText: '' };
+                
                 step.options.forEach(o => {
                     const label = document.createElement('label');
                     label.className = 'flex items-center p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-colors border-2 border-transparent';
-                    
-                    const answerList = Array.isArray(answers[step.id]) ? answers[step.id] : [];
-                    const isChecked = answerList.includes(o);
+                    const isChecked = saved.values.includes(o);
                     
                     label.innerHTML = `
                         <input type="checkbox" name="${step.id}" value="${o}" ${isChecked ? 'checked' : ''} class="w-6 h-6 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                         <span class="ml-4 font-bold text-gray-700">${o}</span>
                     `;
+                    
+                    if (o === '其他') {
+                        const otherInp = document.createElement('input');
+                        otherInp.type = 'text';
+                        otherInp.id = 'motivation-other-text';
+                        otherInp.placeholder = '請說明內容...';
+                        otherInp.value = saved.otherText || '';
+                        otherInp.className = 'ml-4 flex-1 border-b-2 border-gray-300 focus:border-indigo-500 outline-none px-2 py-1 text-sm bg-transparent';
+                        otherInp.style.display = isChecked ? 'inline-block' : 'none';
+                        label.appendChild(otherInp);
+                        
+                        label.querySelector('input').onchange = (e) => {
+                            otherInp.style.display = e.target.checked ? 'inline-block' : 'none';
+                            if (e.target.checked) otherInp.focus();
+                        };
+                    }
                     wrapper.appendChild(label);
                 });
                 content.appendChild(wrapper);
@@ -303,23 +343,28 @@
                 answers[step.id] = val;
             } else if (step.type === 'select') {
                 const sel = document.getElementById(`input-${step.id}`);
+                const other = document.getElementById(`input-${step.id}-other`);
                 if (!sel.value && !step.optional) {
                     alert('請選擇一個選項！');
                     return;
                 }
-                answers[step.id] = sel.value;
+                if (sel.value === '其他' && !other.value.trim()) {
+                    alert('請填寫其他說明！');
+                    return;
+                }
+                answers[step.id] = { value: sel.value, otherText: other ? other.value.trim() : '' };
             } else if (step.type === 'checkbox') {
-                const checkedItems = Array.from(document.querySelectorAll(`input[name="${step.id}"]:checked`)).map(c => c.value);
-                if (checkedItems.length === 0 && !step.optional) {
+                const checked = Array.from(document.querySelectorAll(`input[name="${step.id}"]:checked`)).map(c => c.value);
+                const otherText = document.getElementById('motivation-other-text').value.trim();
+                if (checked.length === 0 && !step.optional) {
                     if (event && event.type === 'click') alert('請至少勾選一項！');
                     return;
                 }
-                answers[step.id] = checkedItems;
-            } else if (step.type === 'likert') {
-                if (!answers[step.id] && !step.optional) {
-                    if (event && event.type === 'click') alert('請點擊一個評分星級！');
+                if (checked.includes('其他') && !otherText) {
+                    alert('請填寫其他動機說明！');
                     return;
                 }
+                answers[step.id] = { values: checked, otherText: otherText };
             }
 
             if (currentStep < steps.length - 1) {
@@ -344,16 +389,42 @@
 
             const params = new URLSearchParams();
             
-            // 基礎資料處理 - 直接傳送字串
+            // 基礎資料
             params.append(FORM_CONFIG.entries.userId, answers.userId || "");
-            params.append(FORM_CONFIG.entries.gender, answers.gender || "");
-            params.append(FORM_CONFIG.entries.status, answers.status || "");
-            params.append(FORM_CONFIG.entries.college, answers.college || "");
+            params.append(FORM_CONFIG.entries.gender, answers.gender ? answers.gender.value : "");
+            
+            // 身分別處理 (支援 Google Form __other_option__)
+            if (answers.status) {
+                if (answers.status.value === '其他') {
+                    params.append(FORM_CONFIG.entries.status, "__other_option__");
+                    params.append(FORM_CONFIG.entries.statusOther, answers.status.otherText);
+                } else {
+                    params.append(FORM_CONFIG.entries.status, answers.status.value);
+                }
+            }
+            
+            // 學院處理 (支援 Google Form __other_option__)
+            if (answers.college) {
+                if (answers.college.value === '其他') {
+                    params.append(FORM_CONFIG.entries.college, "__other_option__");
+                    params.append(FORM_CONFIG.entries.collegeOther, answers.college.otherText);
+                } else {
+                    params.append(FORM_CONFIG.entries.college, answers.college.value);
+                }
+            }
+            
             params.append(FORM_CONFIG.entries.department, answers.department || "");
             
-            // 參與動機 (多選處理) - 直接傳送陣列內容
-            if (Array.isArray(answers.motivation)) {
-                answers.motivation.forEach(m => params.append(FORM_CONFIG.entries.motivation, m));
+            // 參與動機 (多選 + 其他)
+            if (answers.motivation) {
+                answers.motivation.values.forEach(v => {
+                    if (v === '其他') {
+                        params.append(FORM_CONFIG.entries.motivation, "__other_option__");
+                        params.append(FORM_CONFIG.entries.motivationOther, answers.motivation.otherText);
+                    } else {
+                        params.append(FORM_CONFIG.entries.motivation, v);
+                    }
+                });
             }
             
             // 滿意度
