@@ -213,7 +213,7 @@
                 const el = document.createElement('input');
                 el.type = 'text';
                 el.id = `input-${step.id}`;
-                el.value = (answers[step.id] && answers[step.id].isOther) ? answers[step.id].text : (answers[step.id] || '');
+                el.value = answers[step.id] || '';
                 el.className = 'w-full border-b-4 border-gray-100 py-4 text-2xl font-bold outline-none focus:border-indigo-500 transition-all';
                 el.placeholder = step.placeholder;
                 content.appendChild(el);
@@ -248,41 +248,19 @@
                 labels.innerHTML = `<span>非常同意 🤩</span><span>非常不同意 😤</span>`;
                 content.appendChild(labels);
             } else if (step.type === 'select') {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'flex flex-col space-y-4';
-                
                 const select = document.createElement('select');
                 select.id = `input-${step.id}`;
                 select.className = 'w-full border-2 border-gray-200 rounded-2xl p-4 text-xl font-bold outline-none focus:border-indigo-500 transition-all bg-white cursor-pointer';
                 
-                const currentValObj = answers[step.id] || { base: '', isOther: false, text: '' };
-                
-                select.innerHTML = `<option value="" disabled ${!currentValObj.base ? 'selected' : ''}>請點擊選擇...</option>` + 
-                                  step.options.map(o => `<option value="${o}" ${currentValObj.base === o ? 'selected' : ''}>${o}</option>`).join('');
-                
-                const otherInput = document.createElement('input');
-                otherInput.type = 'text';
-                otherInput.id = `input-${step.id}-other`;
-                otherInput.placeholder = '請詳細說明內容...';
-                otherInput.value = currentValObj.isOther ? currentValObj.text : '';
-                otherInput.className = 'w-full border-b-2 border-indigo-200 py-3 text-lg font-bold outline-none focus:border-indigo-500 transition-all';
-                otherInput.style.display = (currentValObj.base === '其他') ? 'block' : 'none';
+                const savedVal = answers[step.id] || "";
+                select.innerHTML = `<option value="" disabled ${!savedVal ? 'selected' : ''}>請點擊選擇...</option>` + 
+                                  step.options.map(o => `<option value="${o}" ${savedVal === o ? 'selected' : ''}>${o}</option>`).join('');
                 
                 select.onchange = () => {
-                    if (select.value === '其他') {
-                        otherInput.style.display = 'block';
-                        otherInput.focus();
-                    } else {
-                        otherInput.style.display = 'none';
-                        otherInput.value = '';
-                        answers[step.id] = { base: select.value, isOther: false, text: select.value };
-                        setTimeout(nextStep, 350);
-                    }
+                    answers[step.id] = select.value;
+                    setTimeout(nextStep, 350);
                 };
-                
-                wrapper.appendChild(select);
-                wrapper.appendChild(otherInput);
-                content.appendChild(wrapper);
+                content.appendChild(select);
             } else if (step.type === 'checkbox') {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'space-y-3';
@@ -290,33 +268,13 @@
                     const label = document.createElement('label');
                     label.className = 'flex items-center p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-colors border-2 border-transparent';
                     
-                    const answerArray = answers[step.id] || [];
-                    const isOtherOption = o === '其他';
-                    const hasOther = answerArray.some(item => item.isOther);
-                    const isChecked = isOtherOption ? hasOther : answerArray.some(item => item.base === o);
+                    const answerList = Array.isArray(answers[step.id]) ? answers[step.id] : [];
+                    const isChecked = answerList.includes(o);
                     
                     label.innerHTML = `
                         <input type="checkbox" name="${step.id}" value="${o}" ${isChecked ? 'checked' : ''} class="w-6 h-6 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                         <span class="ml-4 font-bold text-gray-700">${o}</span>
                     `;
-                    
-                    if (isOtherOption) {
-                        const otherItem = answerArray.find(item => item.isOther);
-                        const input = document.createElement('input');
-                        input.type = 'text';
-                        input.id = 'other-text-motivation';
-                        input.placeholder = '請詳細說明內容...';
-                        input.value = otherItem ? otherItem.text : '';
-                        input.className = 'ml-4 flex-1 border-b-2 border-gray-300 focus:border-indigo-500 outline-none px-2 py-1 text-sm bg-transparent';
-                        input.style.display = isChecked ? 'inline-block' : 'none';
-                        label.appendChild(input);
-                        input.onclick = (e) => e.stopPropagation();
-                        const checkbox = label.querySelector('input');
-                        checkbox.onchange = (e) => {
-                            input.style.display = e.target.checked ? 'inline-block' : 'none';
-                            if (e.target.checked) input.focus();
-                        };
-                    }
                     wrapper.appendChild(label);
                 });
                 content.appendChild(wrapper);
@@ -345,33 +303,13 @@
                 answers[step.id] = val;
             } else if (step.type === 'select') {
                 const sel = document.getElementById(`input-${step.id}`);
-                const other = document.getElementById(`input-${step.id}-other`);
                 if (!sel.value && !step.optional) {
                     alert('請選擇一個選項！');
                     return;
                 }
-                if (sel.value === '其他') {
-                    const otherVal = other.value.trim();
-                    if (!otherVal) {
-                        alert('請輸入具體說明內容！');
-                        return;
-                    }
-                    answers[step.id] = { base: '其他', isOther: true, text: otherVal };
-                } else {
-                    answers[step.id] = { base: sel.value, isOther: false, text: sel.value };
-                }
+                answers[step.id] = sel.value;
             } else if (step.type === 'checkbox') {
-                const checkedItems = [];
-                const checkboxes = document.querySelectorAll(`input[name="${step.id}"]:checked`);
-                checkboxes.forEach(c => {
-                    if (c.value === '其他') {
-                        const otherVal = document.getElementById('other-text-motivation').value.trim();
-                        if (otherVal) checkedItems.push({ base: '其他', isOther: true, text: otherVal });
-                    } else {
-                        checkedItems.push({ base: c.value, isOther: false, text: c.value });
-                    }
-                });
-                
+                const checkedItems = Array.from(document.querySelectorAll(`input[name="${step.id}"]:checked`)).map(c => c.value);
                 if (checkedItems.length === 0 && !step.optional) {
                     if (event && event.type === 'click') alert('請至少勾選一項！');
                     return;
@@ -406,21 +344,21 @@
 
             const params = new URLSearchParams();
             
-            // 基礎資料處理
-            params.append(FORM_CONFIG.entries.userId, answers.userId);
-            params.append(FORM_CONFIG.entries.gender, (answers.gender && answers.gender.text) ? answers.gender.text : "");
-            params.append(FORM_CONFIG.entries.status, (answers.status && answers.status.text) ? answers.status.text : "");
-            params.append(FORM_CONFIG.entries.college, (answers.college && answers.college.text) ? answers.college.text : "");
-            params.append(FORM_CONFIG.entries.department, answers.department);
+            // 基礎資料處理 - 直接傳送字串
+            params.append(FORM_CONFIG.entries.userId, answers.userId || "");
+            params.append(FORM_CONFIG.entries.gender, answers.gender || "");
+            params.append(FORM_CONFIG.entries.status, answers.status || "");
+            params.append(FORM_CONFIG.entries.college, answers.college || "");
+            params.append(FORM_CONFIG.entries.department, answers.department || "");
             
-            // 參與動機 (複選)
+            // 參與動機 (多選處理) - 直接傳送陣列內容
             if (Array.isArray(answers.motivation)) {
-                answers.motivation.forEach(m => params.append(FORM_CONFIG.entries.motivation, m.text));
+                answers.motivation.forEach(m => params.append(FORM_CONFIG.entries.motivation, m));
             }
             
             // 滿意度
-            params.append(FORM_CONFIG.entries.q1, answers.q1);
-            params.append(FORM_CONFIG.entries.q2, answers.q2);
+            params.append(FORM_CONFIG.entries.q1, answers.q1 || "");
+            params.append(FORM_CONFIG.entries.q2, answers.q2 || "");
             params.append(FORM_CONFIG.entries.feedback, answers.feedback || "");
             params.append(FORM_CONFIG.entries.futureTopics, answers.futureTopics || "");
 
