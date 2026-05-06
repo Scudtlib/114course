@@ -165,6 +165,18 @@
         };
 
         const steps = [
+            { 
+                type: 'consent', 
+                label: '重要聲明', 
+                question: '【 個資蒐集聲明 】', 
+                id: 'consent', 
+                content: `
+                    <p class="mb-4">1、圖書館為辦理專題講座滿意度調查，基於「服務成效分析、參與紀錄與後續聯繫」等目的，須取得填答者的<strong>學號 / 人事代碼、所屬單位</strong>等資料，並於資料分析結束後刪除。填答者可依法行使請求查詢、閱覽、補充、更正；請求提供複製本；請求停止蒐集、處理、利用。</p>
+                    <p>2、請求刪除個人資料等權利，請洽活動承辦人。（註：如未完整提供資料，將可能無法計入有效回饋或影響後續聯繫，造成不便之處敬請見諒）</p>
+                `,
+                checkboxLabel: '我已詳細閱讀表單說明，並同意遵守主辦單位活動規則及個資蒐集。',
+                optional: false 
+            },
             { type: 'input', label: '基本資料', question: '請輸入您的學號或人事代碼', id: 'userId', placeholder: '學號 / 人事代碼' },
             { type: 'select', label: '基本資料', question: '1. 您的生理性別', id: 'gender', options: ['男', '女'] },
             { type: 'select', label: '基本資料', question: '2. 您的身分別', id: 'status', options: ['大學部', '碩士生', '博士生', '教師', '職員', '其他'], hasOther: true },
@@ -212,7 +224,35 @@
             document.getElementById('prev-btn').style.visibility = currentStep === 0 ? 'hidden' : 'visible';
             nextBtn.innerText = currentStep === steps.length - 1 ? 'FINISH' : 'NEXT';
 
-            if (step.type === 'input') {
+            if (step.type === 'consent') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'text-left space-y-6';
+
+                const textBlock = document.createElement('div');
+                textBlock.className = 'bg-gray-50 p-5 rounded-2xl text-sm md:text-base text-gray-700 leading-relaxed border border-gray-200 shadow-inner';
+                textBlock.innerHTML = step.content;
+                wrapper.appendChild(textBlock);
+
+                const label = document.createElement('label');
+                label.className = 'flex items-start p-4 bg-indigo-50 rounded-2xl cursor-pointer hover:bg-indigo-100 transition-colors border-2 border-indigo-200';
+
+                const isChecked = answers[step.id] === true;
+
+                label.innerHTML = `
+                    <div class="flex-shrink-0 mt-0.5">
+                        <input type="checkbox" id="input-${step.id}" ${isChecked ? 'checked' : ''} class="w-6 h-6 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shadow-sm">
+                    </div>
+                    <span class="ml-4 font-bold text-indigo-900 leading-snug">${step.checkboxLabel}</span>
+                `;
+
+                label.querySelector('input').onchange = (e) => {
+                    answers[step.id] = e.target.checked;
+                };
+
+                wrapper.appendChild(label);
+                content.appendChild(wrapper);
+
+            } else if (step.type === 'input') {
                 const el = document.createElement('input');
                 el.type = 'text';
                 el.id = `input-${step.id}`;
@@ -265,7 +305,7 @@
                 const otherInp = document.createElement('input');
                 otherInp.type = 'text';
                 otherInp.id = `input-${step.id}-other`;
-                otherInp.placeholder = '請詳細填寫...';
+                otherInp.placeholder = '請詳細說明內容...';
                 otherInp.value = saved.otherText || '';
                 otherInp.className = 'w-full border-b-2 border-indigo-200 py-3 text-lg font-bold outline-none focus:border-indigo-500 transition-all mt-2';
                 otherInp.style.display = saved.value === '其他' ? 'block' : 'none';
@@ -333,7 +373,15 @@
 
         function nextStep() {
             const step = steps[currentStep];
-            if (step.type === 'input' || step.type === 'textarea') {
+            
+            if (step.type === 'consent') {
+                const checkbox = document.getElementById(`input-${step.id}`);
+                if (!checkbox.checked) {
+                    if (event && event.type === 'click') alert('請先勾選同意個資蒐集聲明以繼續任務！');
+                    return;
+                }
+                answers[step.id] = true;
+            } else if (step.type === 'input' || step.type === 'textarea') {
                 const el = document.getElementById(`input-${step.id}`);
                 const val = el ? el.value.trim() : '';
                 if (!val && !step.optional) {
@@ -349,7 +397,7 @@
                     return;
                 }
                 if (sel.value === '其他' && !other.value.trim()) {
-                    alert('請填寫其他說明！');
+                    alert('請填寫其他說明內容！');
                     return;
                 }
                 answers[step.id] = { value: sel.value, otherText: other ? other.value.trim() : '' };
@@ -365,6 +413,11 @@
                     return;
                 }
                 answers[step.id] = { values: checked, otherText: otherText };
+            } else if (step.type === 'likert') {
+                if (!answers[step.id] && !step.optional) {
+                    if (event && event.type === 'click') alert('請選擇一個評分以繼續任務！');
+                    return;
+                }
             }
 
             if (currentStep < steps.length - 1) {
